@@ -1246,7 +1246,7 @@ def simplenet_spacedepth():
   #nm2.add(tf.keras.layers.Dropout(0.5))
   nm2.add(tf.keras.layers.Flatten())
   nm2.add(tf.keras.layers.Dense(10, activation='softmax'))
-  nm2.compile(optimizer=tf.keras.optimizers.Adam(), loss="categorical_crossentropy", metrics=["accuracy"])
+  nm2.compile(optimizer=tf.keras.optimizers.Adam(), loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
   return nm2
 
 def simplenet():
