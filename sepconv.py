@@ -1,6 +1,20 @@
 import tensorflow as tf
 import numpy as np
 
+#Function taken straight from the google paper code
+def SVD_Conv_Tensor(conv, inp_shape):
+  """ Find the singular values of the linear transformation
+  corresponding to the convolution represented by conv on
+  an n x n x depth input. """
+  conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
+  conv_shape = conv.get_shape().as_list()
+  padding = tf.constant([[0, 0], [0, 0],
+                         [0, inp_shape[0] - conv_shape[0]],
+                         [0, inp_shape[1] - conv_shape[1]]])
+  transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
+  singular_values = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]),
+                           compute_uv=False)
+  return singular_values
 
 class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
@@ -62,6 +76,11 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def normalize_linf(self):
         self.div_kernel(self.linf_bound())
 
+    def normalize_google(self):
+      kern = self.construct_kern()
+      L =  tf.math.reduce_max(SVD_Conv_Tensor(kern, self.in_shape.numpy()))
+      self.div_kernel(L)
+      
     def div_kernel(self, L):
         crL = tf.math.pow(L,1.0/3.0)
         self.u = tf.math.divide(self.u, crL)
@@ -71,7 +90,7 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def normalize_l2(self):
         self.div_kernel(self.l2_bound_exp())
 
-    #Google paper inspired regularization
+    #Google paper inspired operator norm regularization
     def normalize_l2_op(self, clip_to):
 
         

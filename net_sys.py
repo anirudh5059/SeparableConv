@@ -60,7 +60,7 @@ class nnetSystem():
     print('\nTrain accuracy:', train_accuracy)
     print('\nTest accuracy:', test_acc)
 
-  def training_loop(self, epochs = 10, linf_norm = False, l2_norm=False, k = 15, data_aug = False):
+  def training_loop(self, epochs = 10, linf_norm = False, l2_norm=False, k = 15, data_aug = False, google_reg=False):
     
     if data_aug == True:
       train_dataset = self.data_iterable_aug()
@@ -105,8 +105,10 @@ class nnetSystem():
                     layer.normalize_linf()
                   if(l2_norm == True):
                     layer.normalize_l2()
+                  if(google_reg == True):
+                    layer.normalize_google()
               print(
                   "Training loss (for one batch) at step %d: %.4f"
                   % (step, float(loss_value))
               )
-              print("Seen so far: %s samples" % ((step + 1) * self.batch_size))
+              #print("Seen so far: %s samples" % ((step + 1) * self.batch_size))
