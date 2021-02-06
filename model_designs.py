@@ -386,7 +386,7 @@ def spacedepthsepconv():
   # Compile the model
   opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
 
-  nm.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+  nm.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
   
   return nm
 
