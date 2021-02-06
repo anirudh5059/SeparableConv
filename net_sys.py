@@ -96,6 +96,8 @@ class nnetSystem():
             self.opt.apply_gradients(zip(grads, self.model.trainable_weights))
 
             #Regularization and logging
+            if(step > len(self.x_train)/self.batch_size):
+              break
             if step % k == 0:
               for layer in self.model.layers:
                 if(isinstance(layer, SpaceDepthSepConv2) and (layer.norm_flag == True)):
