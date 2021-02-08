@@ -1,7 +1,30 @@
+import sys
+sys.path.insert(1, '../custconv/')
+
 import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from model_designs import spacedepthsepconv
+from model_designs import convnet1
 import numpy as np
+
+#Helper functions
+def SVD_Conv_Tensor(conv, inp_shape):
+  """ Find the singular values of the linear transformation
+  corresponding to the convolution represented by conv on
+  an n x n x depth input. """
+  conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
+  conv_shape = conv.shape
+  padding = tf.constant([[0, 0], [0, 0],
+                         [0, inp_shape[0] - conv_shape[0]],
+                         [0, inp_shape[1] - conv_shape[1]]])
+  transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
+  singular_values = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]),
+                           compute_uv=False)
+  return singular_values
+
+def normalize_google_Conv2D(kern, in_shape):
+  L =  tf.math.reduce_max(SVD_Conv_Tensor(kern, in_shape))
+  return tf.math.divide(kern, L)
 
 #Default parameters
 batch_size = 256
@@ -41,7 +64,7 @@ train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 
 
 #Model
-model = spacedepthsepconv()
+model = convnet1()
 
 #Training Parameters
 epochs = 150
@@ -94,6 +117,11 @@ for epoch in range(epochs):
             layer.normalize_l2()
           if(google_reg == True):
             layer.normalize_google()
+        if(isinstance(layer, tf.keras.layers.Conv2D)):
+          if(google_reg==True):
+            arr = layer.get_weights()
+            in_shape = layer.input_shape[1:3]
+            layer.set_weights([normalize_google_Conv2D(arr[0], in_shape), arr[1]])
     print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
 
 test_loss, test_acc = model.evaluate(x=self.x_test, y=self.y_test)
