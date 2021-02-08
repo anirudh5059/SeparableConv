@@ -14,12 +14,12 @@ def convnet1():
   #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
   model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
+  model.add(tf.keras.layers.Dropout(0.1))
   model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
   model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
+  model.add(tf.keras.layers.Dropout(0.2))
   #model.add(Conv3([8,8,128], out_mult = 2))
   model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
@@ -28,6 +28,7 @@ def convnet1():
   model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   model.add(tf.keras.layers.BatchNormalization())
   model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.Dropout(0.3))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
@@ -41,7 +42,7 @@ def convnet1():
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
   #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
+  model.add(tf.keras.layers.Dropout(0.4))
   #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
   #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
@@ -71,7 +72,7 @@ def convnet1():
   # Compile the model
   opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+  model.compile(optimizer=opt, loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
 
   return model
 
