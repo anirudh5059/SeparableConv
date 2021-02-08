@@ -10,7 +10,7 @@ def convnet1():
 
   #Build the VGG11 model object
   model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3], padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
   model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   model.add(tf.keras.layers.BatchNormalization())
@@ -27,8 +27,8 @@ def convnet1():
   #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
   model.add(tf.keras.layers.MaxPooling2D((2, 2)))
   model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   model.add(tf.keras.layers.Dropout(0.3))
+  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
   #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
@@ -72,7 +72,7 @@ def convnet1():
   # Compile the model
   opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
 
-  model.compile(optimizer=opt, loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
+  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
 
   return model
 

@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(1, '../custconv/')
-
 import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from model_designs import spacedepthsepconv
@@ -34,9 +31,9 @@ loss_fn = tf.keras.losses.CategoricalCrossentropy()
 #Load the data
 (x_train, y_train),(x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 y_train = tf.keras.utils.to_categorical(y_train,10)
+y_test = tf.keras.utils.to_categorical(y_test,10)
 
 #(self.x_train, self.y_train),(self.x_test, self.y_test) = tf.keras.datasets.cifar100.load_data()
-#self.y_test = tf.keras.utils.to_categorical(self.y_test,100)
 
 #Normalize the data
 x_train = x_train.astype(float)
@@ -46,7 +43,7 @@ std = np.std(x_train,axis=(0,1,2,3))
 x_train = (x_train-mean)/(std+1e-7)
 x_test = (x_test-mean)/(std+1e-7)
 
-
+#Data augmentation
 datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     featurewise_center=False,
     samplewise_center=False,
@@ -67,12 +64,11 @@ train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 model = convnet1()
 
 #Training Parameters
-epochs = 150
+epochs = 80
 linf_norm = False
 l2_norm=False
-k = 15
-data_aug = False
-google_reg=False
+k = 1
+google_reg=True
 
 
 #Training
@@ -109,8 +105,6 @@ for epoch in range(epochs):
     if step % k == 0:
       for layer in model.layers:
         if(isinstance(layer, SpaceDepthSepConv2) and (layer.norm_flag == True)):
-#print("Got here")
-#layer.debug()
           if(linf_norm == True):
             layer.normalize_linf()
           if(l2_norm == True):
@@ -118,15 +112,14 @@ for epoch in range(epochs):
           if(google_reg == True):
             layer.normalize_google()
         if(isinstance(layer, tf.keras.layers.Conv2D)):
-          if(google_reg==True):
+          if(google_reg == True):
             arr = layer.get_weights()
             in_shape = layer.input_shape[1:3]
             layer.set_weights([normalize_google_Conv2D(arr[0], in_shape), arr[1]])
     print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
 
-test_loss, test_acc = model.evaluate(x=self.x_test, y=self.y_test)
-train_loss, train_accuracy = model.evaluate(x=self.x_train, y=self.y_train)
+test_loss, test_acc = model.evaluate(x=x_test, y=y_test)
+train_loss, train_accuracy = model.evaluate(x=x_train, y=y_train)
 # Print out the model accuracy 
 print('\nTrain accuracy:', train_accuracy)
 print('\nTest accuracy:', test_acc)
-
