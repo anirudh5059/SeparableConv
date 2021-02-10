@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(1, '../custconv/')
+
 import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from model_designs import spacedepthsepconv
@@ -15,26 +18,18 @@ def SVD_Conv_Tensor(conv, inp_shape):
                          [0, inp_shape[0] - conv_shape[0]],
                          [0, inp_shape[1] - conv_shape[1]]])
   transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
-  singular_values = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]),
-                           compute_uv=False)
-  return singular_values
+  D,U,V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
+  return D, U, V, conv_shape
 
-def Clip_OperatorNorm(conv, inp_shape, clip_to):
-  conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
-  conv_shape = conv.shape
-  padding = tf.constant([[0, 0], [0, 0],
-                         [0, inp_shape[0] - conv_shape[0]],
-                         [0, inp_shape[1] - conv_shape[1]]])
-  transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
-  D, U, V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
-  norm = tf.reduce_max(D)
+def Clip_OperatorNorm(D, U, V, conv_shape, clip_to):
+
   D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
   clipped_coeff = tf.linalg.matmul(U, tf.linalg.matmul(tf.linalg.diag(D_clipped),
                                          V, adjoint_b=True))
   clipped_conv_padded = tf.math.real(tf.signal.ifft2d(
       tf.transpose(clipped_coeff, perm=[2, 3, 0, 1])))
   return tf.slice(tf.transpose(clipped_conv_padded, perm=[2, 3, 0, 1]),
-                  [0] * len(conv_shape), conv_shape), norm
+                  [0] * len(conv_shape), conv_shape)
 
 def normalize_google_Conv2D(kern, in_shape):
   L =  tf.math.reduce_max(SVD_Conv_Tensor(kern, in_shape))
@@ -131,7 +126,9 @@ for epoch in range(epochs):
         if(isinstance(layer, tf.keras.layers.Conv2D)):
           arr = layer.get_weights()
           in_shape = layer.input_shape[1:3]
-          n_kern, norm = Clip_OperatorNorm(arr[0], in_shape, 1)
+          D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
+          norm = tf.math.reduce_max(D)
+          n_kern = Clip_OperatorNorm(D, U, V, conv_shape, 0.6*norm)
           print("Unnormalized norm = "+str(norm))
           if(google_reg == True):
             layer.set_weights([n_kern, arr[1]])
