@@ -63,8 +63,8 @@ datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     samplewise_std_normalization=False,
     zca_whitening=False,
     rotation_range=15,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
     horizontal_flip=True,
     vertical_flip=False
     )
@@ -128,9 +128,9 @@ for epoch in range(epochs):
           in_shape = layer.input_shape[1:3]
           D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
           norm = tf.math.reduce_max(D)
-          n_kern = Clip_OperatorNorm(D, U, V, conv_shape, 0.6*norm)
-          print("Unnormalized norm = "+str(norm))
+          #print("Unnormalized norm = "+str(norm))
           if(google_reg == True):
+            n_kern = Clip_OperatorNorm(D, U, V, conv_shape, 0.6*norm)
             layer.set_weights([n_kern, arr[1]])
     print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
 
