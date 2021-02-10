@@ -19,6 +19,23 @@ def SVD_Conv_Tensor(conv, inp_shape):
                            compute_uv=False)
   return singular_values
 
+def Clip_OperatorNorm(conv, inp_shape, clip_to):
+  conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
+  conv_shape = conv.shape
+  padding = tf.constant([[0, 0], [0, 0],
+                         [0, inp_shape[0] - conv_shape[0]],
+                         [0, inp_shape[1] - conv_shape[1]]])
+  transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
+  D, U, V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
+  norm = tf.reduce_max(D)
+  D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
+  clipped_coeff = tf.linalg.matmul(U, tf.linalg.matmul(tf.linalg.diag(D_clipped),
+                                         V, adjoint_b=True))
+  clipped_conv_padded = tf.math.real(tf.signal.ifft2d(
+      tf.transpose(clipped_coeff, perm=[2, 3, 0, 1])))
+  return tf.slice(tf.transpose(clipped_conv_padded, perm=[2, 3, 0, 1]),
+                  [0] * len(conv_shape), conv_shape), norm
+
 def normalize_google_Conv2D(kern, in_shape):
   L =  tf.math.reduce_max(SVD_Conv_Tensor(kern, in_shape))
   return tf.math.divide(kern, L)
@@ -64,11 +81,11 @@ train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 model = convnet1()
 
 #Training Parameters
-epochs = 80
+epochs = 40
 linf_norm = False
 l2_norm=False
-k = 1
-google_reg=True
+k = 10
+google_reg=False
 
 
 #Training
@@ -112,10 +129,12 @@ for epoch in range(epochs):
           if(google_reg == True):
             layer.normalize_google()
         if(isinstance(layer, tf.keras.layers.Conv2D)):
+          arr = layer.get_weights()
+          in_shape = layer.input_shape[1:3]
+          n_kern, norm = Clip_OperatorNorm(arr[0], in_shape, 1)
+          print("Unnormalized norm = "+str(norm))
           if(google_reg == True):
-            arr = layer.get_weights()
-            in_shape = layer.input_shape[1:3]
-            layer.set_weights([normalize_google_Conv2D(arr[0], in_shape), arr[1]])
+            layer.set_weights([n_kern, arr[1]])
     print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
 
 test_loss, test_acc = model.evaluate(x=x_test, y=y_test)
