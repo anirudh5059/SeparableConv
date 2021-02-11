@@ -37,7 +37,12 @@ def normalize_google_Conv2D(kern, in_shape):
 
 #Default parameters
 batch_size = 256
-opt = tf.keras.optimizers.Adam()
+#opt = tf.keras.optimizers.Adam()
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate=1e-1,
+    decay_steps=200,
+    decay_rate=5e-4)
+opt = tf.keras.optimizers.SGD(learning_rate = lr_schedule, momentum = 0.9)
 loss_fn = tf.keras.losses.CategoricalCrossentropy()
   
 #Load the data
