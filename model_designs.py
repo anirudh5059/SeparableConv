@@ -1403,4 +1403,4 @@ def Resnet32():
   out = tf.keras.layers.Dense(10, activation='softmax')(avg)
   model = tf.keras.models.Model(inputs=input_, outputs=out)
   model.compile(optimizer='adam', loss='categorical_crossentropy', run_eagerly=True, metrics=['accuracy'])
-return model
+  return model

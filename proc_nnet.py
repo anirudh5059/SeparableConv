@@ -139,7 +139,7 @@ for cutoff in [1]:
             in_shape = layer.input_shape[1:3]
             D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
             norm = tf.math.reduce_max(D)
-            print("Unnormalized norm = "+str(norm))
+            #print("Layer "+layer.name+": nnnormalized norm = "+str(norm))
             if(google_reg == True):
               n_kern = Clip_OperatorNorm(D, U, V, conv_shape, cutoff)
               layer.set_weights([n_kern, arr[1]])
