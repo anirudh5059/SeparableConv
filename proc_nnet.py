@@ -5,6 +5,7 @@ import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from model_designs import spacedepthsepconv
 from model_designs import convnet1
+from model_designs import Resnet32
 import numpy as np
 
 #Helper functions
@@ -80,19 +81,19 @@ train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 
 
 #Model
-model = convnet1()
+model = Resnet32()
 
 #Training Parameters
 epochs = 100 
 linf_norm = False
 l2_norm=False
 k = 10
-google_reg=True
+google_reg=False
 
 
 #Training
-for cutoff in [5,10,20,30]:
-  o_path = "../experiments/ofile"+str(cutoff)+".txt"
+for cutoff in [1]:
+  o_path = "../experiments/ResNet32base"+str(cutoff)+".txt"
   f = open(o_path, "x")
   for epoch in range(epochs):
     print("\nStart of epoch %d" % (epoch,))
@@ -138,7 +139,7 @@ for cutoff in [5,10,20,30]:
             in_shape = layer.input_shape[1:3]
             D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
             norm = tf.math.reduce_max(D)
-            #print("Unnormalized norm = "+str(norm))
+            print("Unnormalized norm = "+str(norm))
             if(google_reg == True):
               n_kern = Clip_OperatorNorm(D, U, V, conv_shape, cutoff)
               layer.set_weights([n_kern, arr[1]])
@@ -152,4 +153,3 @@ for cutoff in [5,10,20,30]:
   f.write("Test Accuracy: "+str(test_accuracy))
   f.write("Train Accuracy: "+str(train_accuracy))
   f.close()
-
