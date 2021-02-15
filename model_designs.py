@@ -1331,7 +1331,7 @@ def allconvnet_BN():
 
  
 # Helper function to build the resnet model
-def build_residual_blocks(input, filters, reps, subsample=False):
+def build_residual_blocks(input_, filters, reps, subsample=False):
 
   class GrowingList(list):
     def __setitem__(self, index, value):
@@ -1340,8 +1340,6 @@ def build_residual_blocks(input, filters, reps, subsample=False):
         list.__setitem__(self, index, value)
 
   stride = 2 if subsample else 1
-
-  
 
   # Initialize an empty list of the requisite layers here
   bn1 = GrowingList()
@@ -1354,7 +1352,7 @@ def build_residual_blocks(input, filters, reps, subsample=False):
 
   add = GrowingList()
   
-  bn1[0] = tf.keras.layers.BatchNormalization()(input)
+  bn1[0] = tf.keras.layers.BatchNormalization()(input_)
   act1[0] = tf.keras.layers.ReLU()(bn1[0])
   # If subsampling at beginning, we need a stride of 2 only for 1st conv layer
   c1[0] = tf.keras.layers.Conv2D(filters, 3, padding = 'same', strides=stride)(
@@ -1368,7 +1366,7 @@ def build_residual_blocks(input, filters, reps, subsample=False):
   # of the two summands of the adder match up. We use the approach of maxpooling
   # for the spatial dimensions and zero padding for the filter dimension.
   if subsample:
-    in_pooled = tf.keras.layers.AveragePooling2D()(input)
+    in_pooled = tf.keras.layers.MaxPooling2D()(input_)
     in_padded = tf.pad(in_pooled, paddings=[
                                         [0, 0],
                                         [0, 0],
@@ -1377,7 +1375,7 @@ def build_residual_blocks(input, filters, reps, subsample=False):
     ])
     add[0] = tf.keras.layers.Add()([in_padded, c2[0]])
   else:
-    add[0] = tf.keras.layers.Add()([input, c2[0]])
+    add[0] = tf.keras.layers.Add()([input_, c2[0]])
 
   for i in range(1, reps):
     bn1[i] = tf.keras.layers.BatchNormalization()(add[i-1])
@@ -1389,6 +1387,7 @@ def build_residual_blocks(input, filters, reps, subsample=False):
     c2[i] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act2[i])
     
     add[i] = tf.keras.layers.Add()([add[i-1], c2[i]])
+
   return add[reps-1]
   
 # 32 layer Resnet model
@@ -1403,4 +1402,5 @@ def Resnet32():
   out = tf.keras.layers.Dense(10, activation='softmax')(avg)
   model = tf.keras.models.Model(inputs=input_, outputs=out)
   model.compile(optimizer='adam', loss='categorical_crossentropy', run_eagerly=True, metrics=['accuracy'])
+
   return model

@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(1, '../custconv/')
-
 import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from model_designs import spacedepthsepconv
@@ -37,7 +34,7 @@ def normalize_google_Conv2D(kern, in_shape):
   return tf.math.divide(kern, L)
 
 #Default parameters
-batch_size = 256
+batch_size = 64
 #lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
 #    initial_learning_rate=1e-3,
 #    decay_steps=3000,
@@ -71,8 +68,8 @@ datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     samplewise_std_normalization=False,
     zca_whitening=False,
     rotation_range=15,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
     zoom_range=0.2,
     horizontal_flip=True,
     vertical_flip=False
@@ -81,11 +78,9 @@ datagen.fit(x_train)
 train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 
 
-#Model
-model = Resnet32()
 
 #Training Parameters
-epochs = 50 
+epochs = 100 
 linf_norm = False
 l2_norm=False
 k = 10
@@ -94,6 +89,8 @@ google_reg=False
 
 #Training
 for cutoff in [1]:
+  #Model
+  model = Resnet32()
   max_ = 0
   o_path = "../experiments/ResNet32base"+str(cutoff)+".txt"
   f = open(o_path, "x")
@@ -135,19 +132,20 @@ for cutoff in [1]:
               layer.normalize_l2()
             if(google_reg == True):
               layer.normalize_google()
-          if(isinstance(layer, tf.keras.layers.Conv2D)):
-            arr = layer.get_weights()
-            in_shape = layer.input_shape[1:3]
-            D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
-            norm = tf.math.reduce_max(D)
-            if max_ < norm:
-                max_ = norm
-            #print("Layer "+layer.name+": nnnormalized norm = "+str(norm))
-            if(google_reg == True):
-              n_kern = Clip_OperatorNorm(D, U, V, conv_shape, cutoff)
-              layer.set_weights([n_kern, arr[1]])
-      print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
+        print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
     if (epoch == epochs-1):
+      for layer in model.layers:
+        if(isinstance(layer, tf.keras.layers.Conv2D)):
+          arr = layer.get_weights()
+          in_shape = layer.input_shape[1:3]
+          D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
+          norm = tf.math.reduce_max(D)
+          if max_ < norm:
+            max_ = norm
+          #print("Layer "+layer.name+": nnnormalized norm = "+str(norm))
+          if(google_reg == True):
+            n_kern = Clip_OperatorNorm(D, U, V, conv_shape, cutoff)
+            layer.set_weights([n_kern, arr[1]])
       print("Maximum operator norm seen post the last epoch is: " + str(max_))
   test_loss, test_accuracy = model.evaluate(x=x_test, y=y_test)
   train_loss, train_accuracy = model.evaluate(x=x_train, y=y_train)
@@ -156,4 +154,5 @@ for cutoff in [1]:
   print('\nTest accuracy:', test_accuracy)
   f.write("Test Accuracy: "+str(test_accuracy))
   f.write("Train Accuracy: "+str(train_accuracy))
+  f.write("Max norm: "+str(max_))
   f.close()
