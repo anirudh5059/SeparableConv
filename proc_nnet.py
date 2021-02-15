@@ -73,6 +73,7 @@ datagen = tf.keras.preprocessing.image.ImageDataGenerator(
     rotation_range=15,
     width_shift_range=0.2,
     height_shift_range=0.2,
+    zoom_range=0.2,
     horizontal_flip=True,
     vertical_flip=False
     )
@@ -84,7 +85,7 @@ train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 model = Resnet32()
 
 #Training Parameters
-epochs = 100 
+epochs = 50 
 linf_norm = False
 l2_norm=False
 k = 10
@@ -93,11 +94,11 @@ google_reg=False
 
 #Training
 for cutoff in [1]:
+  max_ = 0
   o_path = "../experiments/ResNet32base"+str(cutoff)+".txt"
   f = open(o_path, "x")
   for epoch in range(epochs):
     print("\nStart of epoch %d" % (epoch,))
-
   # Iterate over the batches of the dataset.
     for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
 
@@ -139,12 +140,15 @@ for cutoff in [1]:
             in_shape = layer.input_shape[1:3]
             D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
             norm = tf.math.reduce_max(D)
+            if max_ < norm:
+                max_ = norm
             #print("Layer "+layer.name+": nnnormalized norm = "+str(norm))
             if(google_reg == True):
               n_kern = Clip_OperatorNorm(D, U, V, conv_shape, cutoff)
               layer.set_weights([n_kern, arr[1]])
       print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
-
+    if (epoch == epochs-1):
+      print("Maximum operator norm seen post the last epoch is: " + str(max_))
   test_loss, test_accuracy = model.evaluate(x=x_test, y=y_test)
   train_loss, train_accuracy = model.evaluate(x=x_train, y=y_train)
   # Print out the model accuracy 
