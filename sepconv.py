@@ -102,20 +102,16 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
 
     #Google paper inspired operator norm regularization
     def normalize_l2_op(self, clip_to):
-
-        
-        u_hat = tf.signal.fft2d(tf.cast(self.u, dtype = tf.complex64))
+        u_hat = tf.signal.fft(tf.cast(self.u, dtype = tf.complex64))
         u_hat_norm, _ = tf.linalg.normalize(u_hat, ord=2, axis=0)
-        v_hat = tf.signal.fft2d(tf.cast(self.v, dtype = tf.complex64))
+        v_hat = tf.signal.fft(tf.cast(self.v, dtype = tf.complex64))
         v_hat_norm, _ = tf.linalg.normalize(v_hat, ord=2, axis=0)
         D, U, V = tf.linalg.svd(tf.cast(self.w, dtype = tf.complex64))
         D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
         self.w = tf.math.real(tf.matmul(U, tf.matmul(tf.linalg.diag(D_clipped), V, adjoint_b=True)))
-        self.u = tf.math.real(tf.signal.ifft2d(u_hat_norm))
-        self.v = tf.math.real(tf.signal.ifft2d(v_hat_norm))
+        self.u = tf.math.real(tf.signal.ifft(u_hat_norm))
+        self.v = tf.math.real(tf.signal.ifft(v_hat_norm))
         
-
-
     def l2_bound_exp(self):
         u_hat = tf.signal.fft(tf.cast(self.u, dtype = tf.complex64))
         v_hat = tf.signal.fft(tf.cast(self.v, dtype = tf.complex64))
