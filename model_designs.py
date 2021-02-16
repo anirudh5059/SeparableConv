@@ -1331,7 +1331,7 @@ def allconvnet_BN():
 
  
 # Helper function to build the resnet model
-def build_residual_blocks(input_, filters, reps, subsample=False):
+def build_residual_blocks(inp, filters, reps, subsample=False):
 
   class GrowingList(list):
     def __setitem__(self, index, value):
@@ -1352,7 +1352,7 @@ def build_residual_blocks(input_, filters, reps, subsample=False):
 
   add = GrowingList()
   
-  bn1[0] = tf.keras.layers.BatchNormalization()(input_)
+  bn1[0] = tf.keras.layers.BatchNormalization()(inp)
   act1[0] = tf.keras.layers.ReLU()(bn1[0])
   # If subsampling at beginning, we need a stride of 2 only for 1st conv layer
   c1[0] = tf.keras.layers.Conv2D(filters, 3, padding = 'same', strides=stride)(
@@ -1366,7 +1366,7 @@ def build_residual_blocks(input_, filters, reps, subsample=False):
   # of the two summands of the adder match up. We use the approach of maxpooling
   # for the spatial dimensions and zero padding for the filter dimension.
   if subsample:
-    in_pooled = tf.keras.layers.MaxPooling2D()(input_)
+    in_pooled = tf.keras.layers.MaxPooling2D()(inp)
     in_padded = tf.pad(in_pooled, paddings=[
                                         [0, 0],
                                         [0, 0],
@@ -1375,7 +1375,7 @@ def build_residual_blocks(input_, filters, reps, subsample=False):
     ])
     add[0] = tf.keras.layers.Add()([in_padded, c2[0]])
   else:
-    add[0] = tf.keras.layers.Add()([input_, c2[0]])
+    add[0] = tf.keras.layers.Add()([inp, c2[0]])
 
   for i in range(1, reps):
     bn1[i] = tf.keras.layers.BatchNormalization()(add[i-1])
@@ -1392,15 +1392,14 @@ def build_residual_blocks(input_, filters, reps, subsample=False):
   
 # 32 layer Resnet model
 def Resnet32():
-  input_ = tf.keras.Input(shape = [32,32,3])
-  in_conv = tf.keras.layers.Conv2D(64, 3, padding='same')(input_)
+  inp = tf.keras.Input(shape = [32,32,3])
+  in_conv = tf.keras.layers.Conv2D(64, 3, padding='same')(inp)
   res_64 = build_residual_blocks(in_conv, 64, 3)
   res_128 = build_residual_blocks(res_64, 128, 4, subsample=True)
   res_256 = build_residual_blocks(res_128, 256, 6, subsample=True)
   res_512 = build_residual_blocks(res_256, 512, 4, subsample=True)
   avg = tf.keras.layers.GlobalAveragePooling2D()(res_512)
   out = tf.keras.layers.Dense(10, activation='softmax')(avg)
-  model = tf.keras.models.Model(inputs=input_, outputs=out)
-  model.compile(optimizer='adam', loss='categorical_crossentropy', run_eagerly=True, metrics=['accuracy'])
+  model = tf.keras.models.Model(inputs=inp, outputs=out)
 
   return model
