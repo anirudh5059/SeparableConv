@@ -1,20 +1,29 @@
 import tensorflow as tf
 import numpy as np
 
-#Function taken straight from the google paper code
+# Functions taken straight from the google paper code
 def SVD_Conv_Tensor(conv, inp_shape):
   """ Find the singular values of the linear transformation
   corresponding to the convolution represented by conv on
   an n x n x depth input. """
   conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
-  conv_shape = conv.get_shape().as_list()
+  conv_shape = conv.shape
   padding = tf.constant([[0, 0], [0, 0],
                          [0, inp_shape[0] - conv_shape[0]],
                          [0, inp_shape[1] - conv_shape[1]]])
   transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
-  singular_values = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]),
-                           compute_uv=False)
-  return singular_values
+  D,U,V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
+  return D, U, V, conv_shape
+
+def Clip_OperatorNorm(D, U, V, conv_shape, clip_to):
+
+  D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
+  clipped_coeff = tf.linalg.matmul(U, tf.linalg.matmul(tf.linalg.diag(D_clipped),
+                                         V, adjoint_b=True))
+  clipped_conv_padded = tf.math.real(tf.signal.ifft2d(
+      tf.transpose(clipped_coeff, perm=[2, 3, 0, 1])))
+  return tf.slice(tf.transpose(clipped_conv_padded, perm=[2, 3, 0, 1]),
+                  [0] * len(conv_shape), conv_shape)
 
 class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
@@ -76,10 +85,11 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def normalize_linf(self):
         self.div_kernel(self.linf_bound())
 
-    def normalize_google(self):
+    def normalize_google(self, norm_bound):
       kern = self.construct_kern()
-      L =  tf.math.reduce_max(SVD_Conv_Tensor(kern, self.in_shape.numpy()))
-      self.div_kernel(L)
+      D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
+      L = tf.math.reduce_max(D)
+      self.div_kernel(L/norm_bound)
       
     def div_kernel(self, L):
         crL = tf.math.pow(L,1.0/3.0)
