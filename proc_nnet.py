@@ -5,11 +5,9 @@ from model_designs import convnet1
 from model_designs import Resnet32
 from sepconv import SVD_Conv_Tensor
 from sepconv import Clip_OperatorNorm
+from sepconv import Normalize_kern
+from sepconv import l2_bound
 import numpy as np
-
-def normalize_google_Conv2D(kern, in_shape):
-  L =  tf.math.reduce_max(SVD_Conv_Tensor(kern, in_shape))
-  return tf.math.divide(kern, L)
 
 #Default parameters
 batch_size = 256
@@ -18,7 +16,7 @@ batch_size = 256
 #    decay_steps=3000,
 #    decay_rate=0.96)
 #lr_schedule = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-#    boundaries = [3000, 6000, 12000], values = [0.001, 0.0005, 0.0002, 0.00001])
+#  boundaries = [12000, 30000, 45000], values = [0.0001, 0.00001, 0.000001, 0.0000005])
 opt = tf.keras.optimizers.Adam()
 #opt = tf.keras.optimizers.SGD(learning_rate = lr_schedule, momentum = 0.9)
 loss_fn = tf.keras.losses.CategoricalCrossentropy()
@@ -55,23 +53,22 @@ datagen = tf.keras.preprocessing.image.ImageDataGenerator(
 datagen.fit(x_train)
 train_dataset =  datagen.flow(x_train, y_train, batch_size=batch_size)
 
-
-
 #Training Parameters
-epochs = 50
+epochs = 100
 linf_norm = False
-l2_norm=False
-k = 50
-google_reg=True
+l2_norm=True
+k = 2
+google_reg_norm=False
+google_reg_clip=False
 
 
   # Training
-for bound in [1,5,10,20,30,50]:
+for bound in [1]:
   # Model
   model = spacedepthsepconv()
   model.compile(optimizer='adam', loss='categorical_crossentropy', run_eagerly=True, metrics=['accuracy'])
   max_ = 0
-  o_path = "../experiments/SSDC"+str(bound)+".txt"
+  o_path = "../experiments/SSDC_norm"+str(bound)+".txt"
   f = open(o_path, "x")
   for epoch in range(epochs):
     print("\nStart of epoch %d" % (epoch,))
@@ -112,8 +109,25 @@ for bound in [1,5,10,20,30,50]:
               layer.normalize_linf()
             if(l2_norm == True):
               layer.normalize_l2()
-            if(google_reg == True):
+            if(google_reg_norm == True):
               layer.normalize_google(bound)
+          if(isinstance(layer, tf.keras.layers.Conv2D)):
+            arr = layer.get_weights()
+            in_shape = layer.input_shape[1:3]
+            #D, U, V, conv_shape = SVD_Conv_Tensor(arr[0], in_shape)
+            #norm = tf.math.reduce_max(D)
+            #if max_ < norm:
+            #  max_ = norm
+            #print("Layer "+layer.name+": nnnormalized norm = "+str(norm))
+            if(google_reg_clip == True):
+              n_kern = Clip_OperatorNorm(D, U, V, conv_shape, bound)
+              layer.set_weights([n_kern, arr[1]])
+            if(google_reg_norm == True):
+              n_kern = Normalize_kern(arr[0], tf.math.reduce_max(D), bound)
+              layer.set_weights([n_kern, arr[1]])
+            if(l2_norm == True):
+              n_kern = Normalize_kern(arr[0], l2_bound(arr[0]), bound)
+              layer.set_weights([n_kern, arr[1]])
         print("Training loss (for one batch) at step %d: %.4f"% (step, float(loss_value)))
 
     # Last epoch, check operator norm of every convolutional layer
