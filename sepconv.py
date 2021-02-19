@@ -25,6 +25,17 @@ def Clip_OperatorNorm(D, U, V, conv_shape, clip_to):
   return tf.slice(tf.transpose(clipped_conv_padded, perm=[2, 3, 0, 1]),
                   [0] * len(conv_shape), conv_shape)
 
+def Normalize_kern(kern, L, div):
+  return tf.math.divide(kern, L/div)
+
+def l2_bound(kern):
+  kern_t = tf.cast(tf.transpose(kern, perm = [2,3,0,1]), dtype=tf.complex64)
+  kern_hat = tf.math.square(tf.math.abs(tf.signal.fft2d(kern_t)))
+  return tf.reduce_max(tf.math.sqrt(tf.math.reduce_sum(kern_hat, axis=[0,1])), axis=None)
+
+
+
+
 class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
         if('name' in kwarg):
@@ -76,10 +87,6 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
         kern = self.construct_kern()
         return tf.math.reduce_max(tf.math.reduce_sum(tf.math.abs(kern), [0,1,2]))
 
-    def l2_bound(self):
-        kern = tf.cast(tf.transpose(self.construct_kern(), perm = [2,3,0,1]), dtype=tf.complex64)
-        kern_hat = tf.math.square(tf.math.abs(tf.signal.fft2d(kern)))
-        return tf.reduce_max(tf.math.sqrt(tf.math.reduce_sum(kern_hat, axis=[0,1])), axis=None)
 
     #Normalize in the L_inf - L_inf lipschitz sense
     def normalize_linf(self):
@@ -98,7 +105,7 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
         self.w = tf.math.divide(self.w, crL)
 
     def normalize_l2(self):
-        self.div_kernel(self.l2_bound_exp())
+        self.div_kernel(l2_bound(self.construct_kern()))
 
     #Google paper inspired operator norm regularization
     def normalize_l2_op(self, clip_to):
@@ -132,7 +139,7 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
 
 
 class SpaceSepConv2(tf.keras.layers.Layer):
-    def __init__(self, kern_size = 3, **kwarg):
+    def __init__(self, kern_size = 3, norm_flag=False, **kwarg):
         if(len(kwarg)>2):
           super(SpaceSepConv2, self).__init__(name = kwarg['name'])
         else:
@@ -153,7 +160,16 @@ class SpaceSepConv2(tf.keras.layers.Layer):
             initial_value=tf.constant(kern_size), trainable=False
         )
         self.b = self.add_weight(
-            shape=(kwarg['input_dim'][-3:-1]+[kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
+            shape=([kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
+        )
+        self.norm_flag = tf.Variable(
+            initial_value=tf.constant(norm_flag), trainable=False
+        )
+        self.stride = tf.Variable(
+            initial_value=tf.constant(stride), trainable=False
+        )
+        self.in_shape = tf.Variable(
+            initial_value=tf.constant(kwarg['input_dim']), trainable=False
         )
 
     def construct_kern(self):
@@ -164,13 +180,18 @@ class SpaceSepConv2(tf.keras.layers.Layer):
     def call(self, inputs):    
         kern = self.construct_kern()
         return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, [1,1,1,1], padding='SAME') + self.b)
-    #Compute the bound as mentioned in the Design Doc
-    def compute_bound(self):
-        kern = self.construct_kern()
-        return tf.math.reduce_max(tf.math.reduce_sum(tf.math.abs(kern), [0,1,2]))
-    #Normalize in the L_inf - L_inf lipschitz sense
-    def normalize_layer(self):
-        L = self.compute_bound()
+
+    def div_kernel(self, L):
         srL = tf.math.pow(L,1.0/2.0)
-        self.u = tf.math.divide(self.u, srL)
-        self.v = tf.math.divide(self.v, srL)
+        self.u = tf.math.divide(self.u, crL)
+        self.v = tf.math.divide(self.v, crL) 
+
+    #Normalize in the L_2 - L_2 lipschitz sense
+    def normalize_l2(self):
+        self.div_kern(l2_bound(self.construct_kern()))
+
+    def normalize_google(self, norm_bound):
+        kern = self.construct_kern()
+        D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
+        L = tf.math.reduce_max(D)
+        self.div_kernel(L/norm_bound)
