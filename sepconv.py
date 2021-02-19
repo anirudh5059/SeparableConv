@@ -34,8 +34,6 @@ def l2_bound(kern):
   return tf.reduce_max(tf.math.sqrt(tf.math.reduce_sum(kern_hat, axis=[0,1])), axis=None)
 
 
-
-
 class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
         if('name' in kwarg):
@@ -139,16 +137,16 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
 
 
 class SpaceSepConv2(tf.keras.layers.Layer):
-    def __init__(self, kern_size = 3, norm_flag=False, **kwarg):
+    def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
         if(len(kwarg)>2):
           super(SpaceSepConv2, self).__init__(name = kwarg['name'])
         else:
           super(SpaceSepConv2, self).__init__()
         self.u = self.add_weight(
-            shape=([kwarg['input_dim'][-1], kwarg['out_channels'], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
         )
         self.v = self.add_weight(
-            shape=([kwarg['input_dim'][-1], kwarg['out_channels'], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
         )
         self.out_channels = tf.Variable(
             initial_value=tf.constant(kwarg['out_channels']), trainable=False
@@ -175,23 +173,80 @@ class SpaceSepConv2(tf.keras.layers.Layer):
     def construct_kern(self):
         #Build kernel using u, v here
         #kern[i,j,k,l] = u[k,l,j]*w[k,l,i]*v[l,i]
-        return tf.einsum('klj,kli->ijkl', self.u, self.v)
+        return tf.einsum('lkj,lki->ijkl', self.u, self.v)
 
     def call(self, inputs):    
         kern = self.construct_kern()
-        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, [1,1,1,1], padding='SAME') + self.b)
+        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, strides = self.stride, padding='SAME') + self.b)
 
     def div_kernel(self, L):
         srL = tf.math.pow(L,1.0/2.0)
-        self.u = tf.math.divide(self.u, crL)
-        self.v = tf.math.divide(self.v, crL) 
+        self.u = tf.math.divide(self.u, srL)
+        self.v = tf.math.divide(self.v, srL) 
 
     #Normalize in the L_2 - L_2 lipschitz sense
     def normalize_l2(self):
-        self.div_kern(l2_bound(self.construct_kern()))
+        self.div_kernel(l2_bound(self.construct_kern()))
 
     def normalize_google(self, norm_bound):
         kern = self.construct_kern()
         D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
         L = tf.math.reduce_max(D)
         self.div_kernel(L/norm_bound)
+
+class DepthSepConv2(tf.keras.layers.Layer):
+    def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
+        if(len(kwarg)>2):
+          super(DepthSepConv2, self).__init__(name = kwarg['name'])
+        else:
+          super(DepthSepConv2, self).__init__()
+        self.k = self.add_weight(
+            shape=([kwarg['out_channels'], kern_size, kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
+        )
+        self.u = self.add_weight(
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1]]), initializer=tf.keras.initializers.glorot_normal, trainable=True
+        )
+        self.out_channels = tf.Variable(
+            initial_value=tf.constant(kwarg['out_channels']), trainable=False
+        )
+        self.in_channels = tf.Variable(
+            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False
+        )
+        self.kern_size = tf.Variable(
+            initial_value=tf.constant(kern_size), trainable=False
+        )
+        self.b = self.add_weight(
+            shape=([kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
+        )
+        self.norm_flag = tf.Variable(
+            initial_value=tf.constant(norm_flag), trainable=False
+        )
+        self.stride = tf.Variable(
+            initial_value=tf.constant(stride), trainable=False
+        )
+        self.in_shape = tf.Variable(
+            initial_value=tf.constant(kwarg['input_dim']), trainable=False
+        )
+
+    def construct_kern(self):
+        #Build kernel using u, v here
+        #kern[i,j,k,l] = u[k,l,j]*w[k,l,i]*v[l,i]
+        return tf.einsum('lij,lk->ijkl', self.k, self.u)
+
+    def call(self, inputs):    
+        kern = self.construct_kern()
+        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, strides=self.stride, padding='SAME') + self.b)
+
+    def div_kernel(self, L):
+        srL = tf.math.pow(L,1.0/2.0)
+        self.k = tf.math.divide(self.k, srL)
+        self.u = tf.math.divide(self.u, srL) 
+
+    #Normalize in the L_2 - L_2 lipschitz sense
+    def normalize_l2(self):
+        self.div_kernel(l2_bound(self.construct_kern()))
+
+    def normalize_google(self, norm_bound):
+        kern = self.construct_kern()
+        D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
+        L = tf.math.reduce_max(D)
