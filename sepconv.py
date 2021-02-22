@@ -2,16 +2,23 @@ import tensorflow as tf
 import numpy as np
 
 # Functions taken straight from the google paper code
-def SVD_Conv_Tensor(conv, inp_shape):
-  """ Find the singular values of the linear transformation
-  corresponding to the convolution represented by conv on
-  an n x n x depth input. """
+def prep_svd(conv, inp_shape):
   conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
   conv_shape = conv.shape
   padding = tf.constant([[0, 0], [0, 0],
                          [0, inp_shape[0] - conv_shape[0]],
                          [0, inp_shape[1] - conv_shape[1]]])
-  transform_coeff = tf.signal.fft2d(tf.pad(conv_tr, padding))
+  return tf.signal.fft2d(tf.pad(conv_tr, padding))
+
+def singular_values(conv, inp_shape):
+  transform_coeff = prep_svd(conv, inp_shape)
+  singular_values = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]),
+                           compute_uv=False)
+  return singular_values
+
+def full_svd(conv, inp_shape):
+  conv_shape = conv.shape
+  transform_coeff = prep_svd(conv, inp_shape)
   D,U,V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
   return D, U, V, conv_shape
 
