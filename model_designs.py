@@ -77,6 +77,39 @@ def convnet1():
 
   return model
 
+def convnet2(): 
+  
+  kern = 3
+
+  model = tf.keras.models.Sequential()
+  model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3], padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+  model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.BatchNormalization())
+  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+  model.add(tf.keras.layers.Flatten())
+  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+
+  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
+
+  return model
+
 def convnet_conv3(): 
   
   kern = 3
