@@ -3,6 +3,7 @@ from sepconv import SpaceDepthSepConv2
 from sepconv import SpaceSepConv2
 from sepconv import DepthSepConv2
 from model_designs import spacedepthsepconv
+from model_designs import spacedepthsepconv2
 from model_designs import convnet1
 from model_designs import convnet2
 from model_designs import Resnet32
@@ -13,6 +14,7 @@ from sepconv import singular_values
 from sepconv import Clip_OperatorNorm
 from sepconv import Normalize_kern
 from sepconv import l2_bound
+from sepconv import linf_bound
 import numpy as np
 import time
 
@@ -24,19 +26,31 @@ batch_size = 256
 #    decay_rate=0.96)
 
 #Optimal for convnet2_l2
+lr_c1_l2_exp = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+  boundaries = [4000, 7500], values = [0.0001, 0.00005, 0.00001])
 lr_c1_l2 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-  boundaries = [4000, 7500], values = [0.0001, 0.00001, 0.000001])
+  boundaries = [4000, 8000], values = [0.0001, 0.00001, 0.000005])
 #Optimal for convnet2_base
 lr_c1 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
   boundaries = [4000, 12000], values = [0.001, 0.0005, 0.0001])
+#Optimal for Resnet_l2
 lr_res = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-  boundaries = [40000], values = [0.00005, 0.00001])
+  boundaries = [40000], values = [0.00001, 0.000005])
 
-#Optimal learning rate for Resnet:
-opt = tf.keras.optimizers.Adam(0.00005)
+lr_ssdc = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+  boundaries = [3000], values = [0.01, 0.005])
 
-#opt = tf.keras.optimizers.Adam(lr_c1_l2)
-#opt = tf.keras.optimizers.Adam(0.0001)
+lr_cg = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+  boundaries = [4000, 12000], values = [0.0001, 0.00005, 0.00001])
+
+#Optimal learning rate for Resnet_base:
+#opt = tf.keras.optimizers.Adam(0.00005)
+
+opt = tf.keras.optimizers.Adam(lr_c1_l2_exp)
+
+#Optimal for depthsepconv1:
+#opt = tf.keras.optimizers.Adam()
+
 
 #opt = tf.keras.optimizers.SGD(learning_rate = lr_c1, momentum = 0.9)
 loss_fn = tf.keras.losses.CategoricalCrossentropy()
@@ -80,7 +94,7 @@ train_dataset_base = tmp.shuffle(buffer_size=1024).batch(batch_size)
 #Training Parameters
 epochs = 150
 linf_norm = False
-l2_norm=False
+l2_norm=True
 k = 2
 google_reg_norm=False
 google_reg_clip=False
@@ -152,6 +166,9 @@ def train_step(data_iter):
           if(l2_norm == True):
             n_kern = Normalize_kern(arr[0], l2_bound(arr[0]), 1)
             layer.set_weights([n_kern, arr[1]])
+          if(linf_norm == True):
+            n_kern = Normalize_kern(arr[0], linf_bound(arr[0]), 1)
+            layer.set_weights([n_kern, arr[1]])
 
 
   # Training
@@ -159,22 +176,23 @@ for bound in [1]:
   # Model
   acc_list = []
   bound_list = []
-  model = Resnet32()
+  model = convnet2()
   model.compile(optimizer='adam', loss='categorical_crossentropy', run_eagerly=True, metrics=['accuracy'])
-  max_ = 0
-  o_path = "../experiments/Resnet_base"+str(bound)+".txt"
-  f = open(o_path, "x")
+  #o_path = "../experiments/convnet2_l2_norm"+str(bound)+".txt"
+  #f = open(o_path, "x")
   start = time.time()
   for epoch in range(epochs):
     print("\nStart of epoch %d" % (epoch,))
     # Iterate over the batches of the augmented dataset.
     train_step(train_dataset)
  
+    #TODO: Enable this when running anything apart from google reg clip
     # Iterate over the batches of the base dataset.
     train_step(train_dataset_base)
 
+    _, train_acc = model.evaluate(x_train, y_train)
     _, test_acc = model.evaluate(x_test, y_test)
-    acc_list.append([epoch, test_acc])
+    acc_list.append([epoch, test_acc, train_acc])
 
     if (bound_logging):
       for lnum, layer in enumerate(model.layers):
@@ -184,21 +202,25 @@ for bound in [1]:
           bound_list.append([epoch, lnum, l2_bound(arr[0]).numpy(),
             tf.math.reduce_max(singular_values(arr[0], in_shape)).numpy()])
         
-    if (epoch % 5 == 0):
-      print("Test accuracy at the end of epoch "+str(epoch)+" is "+str(test_acc))
+    #if (epoch % 5 == 0):
+      #print("Test accuracy at the end of epoch "+str(epoch)+" is "+str(test_acc))
   end = time.time()
-  test_loss, test_accuracy = model.evaluate(x=x_test, y=y_test)
-  train_loss, train_accuracy = model.evaluate(x=x_train, y=y_train)
+  acc_list.append([end-start, -1, -1])
+  #test_loss, test_accuracy = model.evaluate(x=x_test, y=y_test)
+  #train_loss, train_accuracy = model.evaluate(x=x_train, y=y_train)
   # Print out the model accuracy 
-  print('\nTrain accuracy:', train_accuracy)
-  print('\nTest accuracy:', test_accuracy)
-  f.write("Test Accuracy: "+str(test_accuracy)+"\n")
-  f.write("Train Accuracy: "+str(train_accuracy)+"\n")
-  f.write("Time taken "+str(end-start)+"\n")
-  f.write("Epochs vs accuracy\n")
-  f.write(str(np.array(acc_list)))
-  if(bound_logging):
-    f.write("\nBounds\n")
-    f.write(str(np.array(bound_list)))
-  f.close()
-model.save("/home/gk/anirudh/experiments/models/Resnet_base")
+  #print('\nTrain accuracy:', train_accuracy)
+  #print('\nTest accuracy:', test_accuracy)
+  #f.write("Test Accuracy: "+str(test_accuracy)+"\n")
+  #f.write("Train Accuracy: "+str(train_accuracy)+"\n")
+  #f.write("Time taken "+str(end-start)+"\n")
+  #f.write("Epochs vs accuracy\n")
+  #f.write(str(np.array(acc_list)))
+  #if(bound_logging):
+  #  f.write("\nBounds\n")
+  #  f.write(str(np.array(bound_list)))
+  #f.close()
+  #np.savetxt("../experiments/convnet2_l2_acc.csv", np.array(acc_list), delimiter=",")
+  #if(bound_logging):
+  #  np.savetxt("../experiments/convnet2_l2_bounds.csv", np.array(bound_list), delimiter=",")
+#model.save("/home/gk/anirudh/experiments/models/convnet2_l2")
