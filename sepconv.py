@@ -40,6 +40,9 @@ def l2_bound(kern):
   kern_hat = tf.math.square(tf.math.abs(tf.signal.fft2d(kern_t)))
   return tf.reduce_max(tf.math.sqrt(tf.math.reduce_sum(kern_hat, axis=[0,1])), axis=None)
 
+def linf_bound(kern):
+  return tf.math.reduce_max(tf.math.reduce_sum(tf.math.abs(kern), [0,1,2]))
+
 
 class SpaceDepthSepConv2(tf.keras.layers.Layer):
     def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
@@ -69,7 +72,7 @@ class SpaceDepthSepConv2(tf.keras.layers.Layer):
             shape=([kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
         )
         self.in_shape = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim']), trainable=False
+            initial_value=tf.constant(kwarg['input_dim'][:-1]), trainable=False
         )
         self.norm_flag = tf.Variable(
             initial_value=tf.constant(norm_flag), trainable=False
@@ -174,7 +177,7 @@ class SpaceSepConv2(tf.keras.layers.Layer):
             initial_value=tf.constant(stride), trainable=False
         )
         self.in_shape = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim']), trainable=False
+            initial_value=tf.constant(kwarg['input_dim'][:-1]), trainable=False
         )
 
     def construct_kern(self):
@@ -231,9 +234,7 @@ class DepthSepConv2(tf.keras.layers.Layer):
         self.stride = tf.Variable(
             initial_value=tf.constant(stride), trainable=False
         )
-        self.in_shape = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim']), trainable=False
-        )
+        self.in_shape = (int(kwarg['input_dim'][1]), int(kwarg['input_dim'][2]))
 
     def construct_kern(self):
         #Build kernel using u, v here
@@ -253,7 +254,17 @@ class DepthSepConv2(tf.keras.layers.Layer):
     def normalize_l2(self):
         self.div_kernel(l2_bound(self.construct_kern()))
 
-    def normalize_google(self, norm_bound):
+    def normalize_cust(self):
+        self.div_kernel(self.cust_bound())
+
+    def normalize_google(self):
         kern = self.construct_kern()
-        D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
-        L = tf.math.reduce_max(D)
+        D, U, V, _ =  full_svd(kern, self.in_shape)
+        self.div_kernel(tf.math.reduce_max(D))
+
+    def cust_bound(self):
+        D = tf.linalg.svd(self.u, compute_uv=False)
+        return tf.math.reduce_max(tf.norm(self.k, ord=2, axis=0))\
+          *tf.math.reduce_max(D)\
+          *tf.math.sqrt(tf.cast(self.out_channels, tf.float32))
+        
