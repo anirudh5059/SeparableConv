@@ -2,7 +2,6 @@ import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from sepconv import SpaceSepConv2
 from sepconv import DepthSepConv2
-from model_designs import spacedepthsepconv
 from model_designs import spacedepthsepconv2
 from model_designs import spacedepthsepconv3
 from model_designs import convnet1
@@ -18,6 +17,11 @@ from sepconv import l2_bound
 from sepconv import linf_bound
 import numpy as np
 import time
+
+#Fix memory error where cuDNN failed to initialize 
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 #Default parameters
 batch_size = 256
@@ -95,9 +99,9 @@ train_dataset_base = tmp.shuffle(buffer_size=1024).batch(batch_size)
 #Training Parameters
 epochs = 100
 linf_norm = False
-l2_norm=False
+l2_norm=True
 k = 2
-google_reg_norm=True
+google_reg_norm=False
 google_reg_clip=False
 bound_logging=False
 
@@ -148,28 +152,11 @@ def train_step(data_iter):
           (layer.norm_flag == True)
           ):
           if(linf_norm == True):
-            layer.normalize_linf()
+            layer.div_kernel(bound)
           if(l2_norm == True):
-            layer.normalize_l2()
           if(google_reg_norm == True):
-            layer.normalize_google()
-        if(isinstance(layer, tf.keras.layers.Conv2D)):
-          arr = layer.get_weights()
-          in_shape = layer.input_shape[1:3]
-          if(google_reg_clip == True):
-            D, U, V, conv_shape = full_svd(arr[0], in_shape)
-            n_kern = Clip_OperatorNorm(D, U, V, conv_shape, 1)
-            layer.set_weights([n_kern, arr[1]])
-          if(google_reg_norm == True):
-            sing = singular_values(arr[0], in_shape)
-            n_kern = Normalize_kern(arr[0], tf.math.reduce_max(sing), 1)
-            layer.set_weights([n_kern, arr[1]])
-          if(l2_norm == True):
-            n_kern = Normalize_kern(arr[0], l2_bound(arr[0]), 1)
-            layer.set_weights([n_kern, arr[1]])
-          if(linf_norm == True):
-            n_kern = Normalize_kern(arr[0], linf_bound(arr[0]), 1)
-            layer.set_weights([n_kern, arr[1]])
+            bound = tf.reduce_max(singular_values(layer.construct_kern()))
+          layer.div_kernel(bound)
 
 
   # Training

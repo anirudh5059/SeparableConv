@@ -2,11 +2,12 @@ import tensorflow as tf
 from sepconv import SpaceDepthSepConv2
 from sepconv import SpaceSepConv2
 from sepconv import DepthSepConv2
-from model_designs import spacedepthsepconv
 from model_designs import spacedepthsepconv2
 from model_designs import convnet1
 from model_designs import convnet2
+from model_designs import convnet2_c100
 from model_designs import Resnet32
+from model_designs import Resnet32_c100
 from model_designs import spacesepconv1
 from model_designs import depthsepconv1
 from sepconv import full_svd
@@ -18,6 +19,11 @@ from sepconv import linf_bound
 import numpy as np
 import time
 
+#Fix memory error where cuDNN failed to initialize 
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 #Default parameters
 batch_size = 256
 #lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
@@ -28,20 +34,20 @@ batch_size = 256
 #Optimal for convnet2_l2
 lr_c1_l2_exp = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
   boundaries = [4000, 7500], values = [0.0001, 0.00005, 0.00001])
-lr_c1_l2 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-  boundaries = [4000, 8000], values = [0.0001, 0.00001, 0.000005])
+
+#lr_c1_l2 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+#  boundaries = [4000, 8000], values = [0.0001, 0.00001, 0.000005])
+
 #Optimal for convnet2_base
 lr_c1 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
   boundaries = [4000, 12000], values = [0.001, 0.0005, 0.0001])
+
 #Optimal for Resnet_l2
 lr_res = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
   boundaries = [40000], values = [0.00001, 0.000005])
 
-lr_ssdc = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-  boundaries = [3000], values = [0.01, 0.005])
-
-lr_cg = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-  boundaries = [4000, 12000], values = [0.0001, 0.00005, 0.00001])
+#lr_cg = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+#  boundaries = [4000, 12000], values = [0.0001, 0.00005, 0.00001])
 
 #Optimal learning rate for Resnet_base:
 #opt = tf.keras.optimizers.Adam(0.00005)
@@ -56,11 +62,13 @@ opt = tf.keras.optimizers.Adam(lr_c1_l2_exp)
 loss_fn = tf.keras.losses.CategoricalCrossentropy()
   
 #Load the data
-(x_train, y_train),(x_test, y_test) = tf.keras.datasets.cifar10.load_data()
-y_train = tf.keras.utils.to_categorical(y_train,10)
-y_test = tf.keras.utils.to_categorical(y_test,10)
+#(x_train, y_train),(x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+#y_train = tf.keras.utils.to_categorical(y_train,10)
+#y_test = tf.keras.utils.to_categorical(y_test,10)
 
-#(self.x_train, self.y_train),(self.x_test, self.y_test) = tf.keras.datasets.cifar100.load_data()
+(x_train, y_train),(x_test, y_test) = tf.keras.datasets.cifar100.load_data()
+y_train = tf.keras.utils.to_categorical(y_train,100)
+y_test = tf.keras.utils.to_categorical(y_test,100)
 
 #Normalize the data
 x_train = x_train.astype(float)
@@ -98,7 +106,7 @@ l2_norm=True
 k = 2
 google_reg_norm=False
 google_reg_clip=False
-bound_logging=True
+bound_logging=False
 
 def train_step(data_iter):
 
@@ -139,19 +147,6 @@ def train_step(data_iter):
     # Regularization
     if (step % k == 0):
       for layer in model.layers:
-        if(
-          (isinstance(layer, SpaceDepthSepConv2)
-            or isinstance(layer, SpaceSepConv2) 
-            or isinstance(layer, DepthSepConv2)) 
-          and
-          (layer.norm_flag == True)
-          ):
-          if(linf_norm == True):
-            layer.normalize_linf()
-          if(l2_norm == True):
-            layer.normalize_l2()
-          if(google_reg_norm == True):
-            layer.normalize_google(1)
         if(isinstance(layer, tf.keras.layers.Conv2D)):
           arr = layer.get_weights()
           in_shape = layer.input_shape[1:3]
@@ -161,13 +156,13 @@ def train_step(data_iter):
             layer.set_weights([n_kern, arr[1]])
           if(google_reg_norm == True):
             sing = singular_values(arr[0], in_shape)
-            n_kern = Normalize_kern(arr[0], tf.math.reduce_max(sing), 1)
+            n_kern = normalize_kern(arr[0], tf.math.reduce_max(sing), 1)
             layer.set_weights([n_kern, arr[1]])
           if(l2_norm == True):
-            n_kern = Normalize_kern(arr[0], l2_bound(arr[0]), 1)
+            n_kern = normalize_kern(arr[0], l2_bound(arr[0]), 1)
             layer.set_weights([n_kern, arr[1]])
           if(linf_norm == True):
-            n_kern = Normalize_kern(arr[0], linf_bound(arr[0]), 1)
+            n_kern = normalize_kern(arr[0], linf_bound(arr[0]), 1)
             layer.set_weights([n_kern, arr[1]])
 
 
@@ -176,7 +171,7 @@ for bound in [1]:
   # Model
   acc_list = []
   bound_list = []
-  model = convnet2()
+  model = Resnet32_c100()
   model.compile(optimizer='adam', loss='categorical_crossentropy', run_eagerly=True, metrics=['accuracy'])
   #o_path = "../experiments/convnet2_l2_norm"+str(bound)+".txt"
   #f = open(o_path, "x")
@@ -220,7 +215,7 @@ for bound in [1]:
   #  f.write("\nBounds\n")
   #  f.write(str(np.array(bound_list)))
   #f.close()
-  #np.savetxt("../experiments/convnet2_l2_acc.csv", np.array(acc_list), delimiter=",")
-  #if(bound_logging):
-  #  np.savetxt("../experiments/convnet2_l2_bounds.csv", np.array(bound_list), delimiter=",")
-#model.save("/home/gk/anirudh/experiments/models/convnet2_l2")
+  np.savetxt("../experiments/convnet2_c100_l2_acc.csv", np.array(acc_list), delimiter=",")
+  if(bound_logging):
+    np.savetxt("../experiments/convnet2_c100_l2_bounds.csv", np.array(bound_list), delimiter=",")
+model.save("/home/gk/anirudh/experiments/models/convnet2_c100_l2")
