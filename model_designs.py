@@ -6,1543 +6,1010 @@ from conv3 import Conv3
 from conv3 import FullConv3
 
 def convnet1(): 
-  
-  kern = 3
+    
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  #Build the VGG11 model object
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3], padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.3))
-  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3],
+        padding='same', activation='relu',
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  return model
+    model.add(tf.keras.layers.Conv2D(256, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(512, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def convnet2(): 
-  
-  kern = 3
+    
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3], padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3],
+        padding='same', activation='relu',
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(64, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  return model
+    model.add(tf.keras.layers.Conv2D(256, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(256, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Conv2D(512, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(512, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+
+    return model
+
+def convnet2_c100(): 
+    
+    kern = 3
+    model = tf.keras.models.Sequential()
+
+    model.add(tf.keras.layers.Conv2D(64, kern, input_shape=[32,32,3],
+        padding='same', activation='relu',
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(64, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Conv2D(256, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(256, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Conv2D(512, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(512, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def convnet_conv3(): 
-  
-  kern = 3
+    
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  #Build the VGG11 model object
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  model.add(Conv3(input_dim = [8,8,128], out_mult=2))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(FullConv3(input_dim = [4,4,256], out_mult=2))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.3))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.4))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.4))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(tf.keras.layers.Conv2D(64, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  return model
+    model.add(Conv3(input_dim=[8,8,128], out_mult=2))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(FullConv3(input_dim=[4,4,256], out_mult=2))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.3))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.4))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.4))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def spacesepconv1():
-  kern = 3
 
-  #Build the VGG11 model object
-  model = tf.keras.models.Sequential()
-  model.add(SpaceSepConv2(input_dim = [32,32,3], out_channels=64, norm_flag = True))
-  #model.add(SpaceSepConv2([32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(SpaceSepConv2(input_dim = [16,16,64], out_channels=128, norm_flag = True))
-  #model.add(SpaceSepConv2([16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  model.add(SpaceSepConv2(input_dim = [8,8,128], out_channels=256, norm_flag = True))
-  #model.add(SpaceSepConv2([8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceSepConv2(input_dim = [4,4,256], out_channels=512, norm_flag = True))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(0)))
-  # Compile the model
+    model.add(SpaceSepConv2(input_dim=[32,32,3], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly = True)
-  
-  return model
+    model.add(SpaceSepConv2(input_dim=[16,16,64], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceSepConv2(input_dim=[8,8,128], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceSepConv2(input_dim=[4,4,256], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(0)))
+
+    
+    return model
 
 def depthsepconv1():
-  kern = 3
 
-  #Build the VGG11 model object
-  model = tf.keras.models.Sequential()
-  model.add(DepthSepConv2(input_dim = [32,32,3], out_channels = 64, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(DepthSepConv2(input_dim = [32,32,64], out_channels = 64, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(DepthSepConv2(input_dim = [16,16,64], out_channels = 128, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(DepthSepConv2(input_dim = [16,16,128], out_channels = 128, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(DepthSepConv2(input_dim = [8,8,128], out_channels = 256, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(DepthSepConv2(input_dim = [8,8,256], out_channels = 256, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(DepthSepConv2(input_dim = [4,4,256], out_channels = 512, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(DepthSepConv2(input_dim = [4,4,512], out_channels = 512, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(0)))
-  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly = True)
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  return model
+    model.add(DepthSepConv2(input_dim=[32,32,3], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(DepthSepConv2(input_dim=[32,32,64], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-def prt_spacesepconv():
-  kern = 3
+    model.add(DepthSepConv2(input_dim=[16,16,64], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(DepthSepConv2(input_dim=[16,16,128], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  #Build the VGG11 model object
-  nm = tf.keras.models.Sequential()
-  nm.add(model.get_layer('space_sep_conv2_8'))
-  #model.add(SpaceSepConv2([32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm.add(model.get_layer('space_sep_conv2_9'))
-  #model.add(SpaceSepConv2([16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm.add(model.get_layer('space_sep_conv2_10'))
-  #model.add(SpaceSepConv2([8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  nm.add(SpaceSepConv2(input_dim = [4,4,256], out_channels=512, name = 'space_sep_conv2_11'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    model.add(DepthSepConv2(input_dim=[8,8,128], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(DepthSepConv2(input_dim=[8,8,256], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  nm.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  ##model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm.add(tf.keras.layers.Dropout(0.5))
-  nm.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(DepthSepConv2(input_dim=[4,4,256], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(DepthSepConv2(input_dim=[4,4,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  nm.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return nm
-def spacedepthsepconv():
-  kern = 3
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  #Build the VGG11 model object
-  nm = tf.keras.models.Sequential()
-  nm.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=64, norm_flag=True))
-  #model.add(SpaceSepConv2([32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels=128, norm_flag=True))
-  #model.add(SpaceSepConv2([16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels=256, norm_flag=True))
-  #model.add(SpaceSepConv2([8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  nm.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels=512, norm_flag=True))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(0)))
 
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  nm.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm.add(tf.keras.layers.Dropout(0.4))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #nm.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #nm.add(tf.keras.layers.Dropout(0.5))
-  #nm.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
-
-  nm.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
-  
-  return nm
-
+    return model
 
 def spacedepthsepconv2():
-  kern = 3
 
-  model = tf.keras.models.Sequential()
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels = 64, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,64], out_channels = 64, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels = 128, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,128], out_channels = 128, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels = 256, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels = 256, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels = 512, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels = 512, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels = 1024, norm_flag = True, k=10))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceDepthSepConv2(input_dim = [2,2,1024], out_channels = 1024, norm_flag = True, k=10))
-  #model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(0)))
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly = True)
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,64], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  return model
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,64], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,128], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,128], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,256], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(0)))
+
+
+    return model
 
 def spacedepthsepconv3():
-  kern = 3
 
-  model = tf.keras.models.Sequential()
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels = 128, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,64], out_channels = 128, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,128], out_channels = 256, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,256], out_channels = 256, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels = 512, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,512], out_channels = 512, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels = 1024, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,1024], out_channels = 1024, norm_flag = True))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels = 1024, norm_flag = True, k=10))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceDepthSepConv2(input_dim = [2,2,1024], out_channels = 1024, norm_flag = True, k=10))
-  #model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(100, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(0)))
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly = True)
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,64], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  return model
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,128], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,256], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-def prt_spacesepconv2():
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  kern = 3
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=1024,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,1024], out_channels=1024,
+        norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
-  #Build the VGG11 model object
-  nm2 = tf.keras.models.Sequential()
-  nm2.add(nm.get_layer('space_sep_conv2_8'))
-  nm2.add(SpaceSepConv2(input_dim = [32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm2.add(nm.get_layer('space_sep_conv2_9'))
-  nm2.add(SpaceSepConv2(input_dim = [16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm2.add(nm.get_layer('space_sep_conv2_10'))
-  nm2.add(SpaceSepConv2(input_dim = [8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(SpaceSepConv2(input_dim = [4,4,512], out_channels=512))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  nm2.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  ##model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm2.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(0)))
 
-  nm2.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return nm2
+    return model
 
-def spacesepconv2():  
-  kern = 3
-
-  #Build the VGG11 model object
-  nm2 = tf.keras.models.Sequential()
-  nm2.add(SpaceSepConv2(input_dim = [32,32,3], out_channels=64))
-  nm2.add(SpaceSepConv2(input_dim = [32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm2.add(SpaceSepConv2(input_dim = [16,16,64], out_channels=128))
-  nm2.add(SpaceSepConv2(input_dim = [16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm2.add(SpaceSepConv2(input_dim = [8,8,128], out_channels=256))
-  nm2.add(SpaceSepConv2(input_dim = [8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceSepConv2(input_dim = [4,4,256], out_channels=512))
-  nm2.add(SpaceSepConv2(input_dim = [4,4,512], out_channels=512))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  nm2.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  ##model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm2.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
-
-  nm2.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return nm2
-
-def spacedepthsepconv2():
-  kern = 3
-
-  #Build the VGG11 model object
-  nm = tf.keras.models.Sequential()
-  nm.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=64, name = 'test1'))
-  nm.add(SpaceDepthSepConv2(input_dim = [32,32,64], out_channels=64, norm_flag = True))
-  #model.add(SpaceSepConv2([32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels=128, name = 'test2'))
-  nm.add(SpaceDepthSepConv2(input_dim = [16,16,128], out_channels=128, norm_flag = True))
-  #model.add(SpaceSepConv2([16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels=256, name = 'test3'))
-  nm.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256, norm_flag = True))
-  #model.add(SpaceSepConv2([8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  nm.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels=512, name = 'test4'))
-  nm.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512, norm_flag = True))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  nm.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm.add(tf.keras.layers.Dropout(0.4))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #nm.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #nm.add(tf.keras.layers.Dropout(0.5))
-  #nm.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
-
-  nm.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  
-  return nm
 
 def vgg_spacedepth():
-  kern = 3
 
-#Build the VGG19 model object
-  model = tf.keras.models.Sequential()
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=64))
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,64], out_channels=64, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels=128))
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,128], out_channels=128, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels=256))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256, norm_flag=True))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512, norm_flag=True))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512, norm_flag=True))
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy", "loss"])
-  return model
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3], out_channels=64))
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,64], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-def prt_spacedepthsepconv2_c100():
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,64], out_channels=128))
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,128], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  kern = 3
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,128], out_channels=256))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256,
+        norm_flag=True))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  #Build the VGG11 model object
-  nm2 = tf.keras.models.Sequential()
-  nm2.add(nm.get_layer('space_sep_conv2_8'))
-  nm2.add(SpaceDepthSepConv2(input_dim = [32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm2.add(nm.get_layer('space_sep_conv2_9'))
-  nm2.add(SpaceDepthSepConv2(input_dim = [16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm2.add(nm.get_layer('space_sep_conv2_10'))
-  nm2.add(nm.get_layer('space_sep_conv2_10'))
-  nm2.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256))
-  nm2.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  nm2.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  nm2.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,256], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512,
+        norm_flag=True))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  ##model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Flatten())
-  nm2.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm2.add(nm.get_layer('space_sep_conv2_11'))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512,
+        norm_flag=True))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  nm2.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return nm2
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(10, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def vgg11():
-  nm2 = tf.keras.models.Sequential()
-  nm2.add(tf.keras.layers.Conv2D(64, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Conv2D(128, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Conv2D(256, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.Conv2D(256, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  nm2.add(tf.keras.layers.Flatten())
-  nm2.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm2.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  return nm2
+
+    model = tf.keras.models.Sequential()
+
+    model.add(tf.keras.layers.Conv2D(64, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(128, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(256, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(256, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def vgg11_spacedepth():
-  nm2 = tf.keras.models.Sequential()
-  nm2.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=64))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels=128))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels=256))
-  nm2.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels=512))
-  nm2.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512))
-  nm2.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512))
-  nm2.add(tf.keras.layers.Flatten())
-  nm2.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm2.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  return nm2
+
+    model = tf.keras.models.Sequential()
+
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3], out_channels=64))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,64], out_channels=128))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,128], out_channels=256))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,256], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+
+    return model
 
 def convnet_c100():
-  
-  kern = 3
+    
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  #Build the VGG11 model object
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.4))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(tf.keras.layers.Conv2D(64, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    model.add(tf.keras.layers.Conv2D(128, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  return model
+    model.add(tf.keras.layers.Conv2D(256, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(512, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.4))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def spacedepthsepconv_c100():
-  kern = 3
 
-  #Build the VGG11 model object
-  nm = tf.keras.models.Sequential()
-  nm.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=64, norm_flag=True))
-  #model.add(SpaceSepConv2([32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  nm.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels=128, norm_flag=True))
-  #model.add(SpaceSepConv2([16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  nm.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels=256, norm_flag=True))
-  #model.add(SpaceSepConv2([8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  nm.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels=512, norm_flag=True))
-  nm.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  nm.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  nm.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  nm.add(tf.keras.layers.Dropout(0.4))
-  nm.add(tf.keras.layers.BatchNormalization())
-  #nm.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #nm.add(tf.keras.layers.Dropout(0.5))
-  #nm.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  nm.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  #nm.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  
-  return nm
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,64], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,128], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,256], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.4))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def spacesepconv_c100():
-  kern = 3
 
-  #Build the VGG11 model object
-  model = tf.keras.models.Sequential()
-  model.add(SpaceSepConv2(input_dim = [32,32,3], out_channels=64))
-  #model.add(SpaceSepConv2([32,32,64], out_channels=64))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(64, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(SpaceSepConv2(input_dim = [16,16,64], out_channels=128))
-  #model.add(SpaceSepConv2([16,16,128], out_channels=128))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(128, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  #model.add(Conv3([8,8,128], out_mult = 2))
-  model.add(SpaceSepConv2(input_dim = [8,8,128], out_channels=256))
-  #model.add(SpaceSepConv2([8,8,256], out_channels=256))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(256, kern, padding = 'same', activation='relu'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  ##model.add(SpaceSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(Conv3([4,4,256]))
-  #model.add(Conv3([4,4,256]))
-  #model.add(SpaceDepthSepConv2([4,4,256], out_channels=512))
-  #model.add(SpaceDepthSepConv2([4,4,512], out_channels=512))
-  #model.add(SpaceSepConv2([4,4,512], out_channels=512))
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(Conv3([2,2,512]))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.Conv2D(512, kern, padding = 'same', activation='relu'))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.5))
-  #model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dense(512, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  #model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(SpaceSepConv2(input_dim=[32,32,3], out_channels=64))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceSepConv2(input_dim=[16,16,64], out_channels=128))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceSepConv2(input_dim=[8,8,128], out_channels=256))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  
-  return model
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def vgg_c100():
-  kern = 3
 
-#Build the VGG19 model object
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(64, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(64, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(tf.keras.layers.Conv2D(128, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(128, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  model.add(tf.keras.layers.Conv2D(256, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(256, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(256, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(256, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.Conv2D(512, kern, activation='relu', padding='same'))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return model
+    model.add(tf.keras.layers.Conv2D(64, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(64, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(128, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(128, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(256, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(256, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(256, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(256, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.Conv2D(512, kern, activation='relu',
+        padding='same'))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
 
 def vgg_spacedepth_c100():
-  kern = 3
 
-#Build the VGG19 model object
-  model = tf.keras.models.Sequential()
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=64))
-  model.add(SpaceDepthSepConv2(input_dim = [32,32,64], out_channels=64, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.1))
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,64], out_channels=128))
-  model.add(SpaceDepthSepConv2(input_dim = [16,16,128], out_channels=128, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.2))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,128], out_channels=256))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256, norm_flag=True))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256))
-  model.add(SpaceDepthSepConv2(input_dim = [8,8,256], out_channels=256, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,256], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512, norm_flag=True))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [4,4,512], out_channels=512, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512, norm_flag=True))
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512))
-  model.add(SpaceDepthSepConv2(input_dim = [2,2,512], out_channels=512, norm_flag=True))
-  model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  model.add(tf.keras.layers.BatchNormalization())
-  #model.add(tf.keras.layers.Dropout(0.3))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,40], out_channels=50))
-  #model.add(SpaceDepthSepConv2(input_dim = [8,8,50], out_channels=50))
-  #model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #model.add(tf.keras.layers.Dropout(0.4))
-  # Add the Flatten Layer
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.BatchNormalization())
-  # Build the output layer
-  model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, kernel_regularizer = tf.keras.regularizers.l2(5e-4)))
-  # Compile the model
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return model
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3], out_channels=64))
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,64], out_channels=64,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
 
-baseMapNum = 32
-weight_decay = 1e-4
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,64], out_channels=128))
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,128], out_channels=128,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,128], out_channels=256))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256,
+        norm_flag=True))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256))
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,256], out_channels=256,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,256], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512,
+        norm_flag=True))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[4,4,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512,
+        norm_flag=True))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512))
+    model.add(SpaceDepthSepConv2(input_dim=[2,2,512], out_channels=512,
+        norm_flag=True))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(4096, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dense(1024, activation=tf.nn.relu,
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.BatchNormalization())
+
+    model.add(tf.keras.layers.Dense(100, activation=tf.nn.softmax, 
+        kernel_regularizer=tf.keras.regularizers.l2(5e-4)))
+
+    return model
+
 
 def simplenet_spacedepth():
-  nm2 = tf.keras.models.Sequential()
-  nm2.add(SpaceDepthSepConv2(input_dim = [32,32,3], out_channels=baseMapNum, norm_flag=True))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [32,32,baseMapNum], out_channels=baseMapNum, norm_flag=True))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.Dropout(0.2))
-  
-  nm2.add(SpaceDepthSepConv2(input_dim = [16,16,baseMapNum], out_channels=2*baseMapNum, norm_flag=True))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [16,16,2*baseMapNum], out_channels=2*baseMapNum, norm_flag=True))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.Dropout(0.3))
 
-  nm2.add(SpaceDepthSepConv2(input_dim = [8,8,2*baseMapNum], out_channels=4*baseMapNum, norm_flag=True))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(SpaceDepthSepConv2(input_dim = [8,8,4*baseMapNum], out_channels=4*baseMapNum, norm_flag=True))
-  nm2.add(tf.keras.layers.BatchNormalization())
-  nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  nm2.add(tf.keras.layers.Dropout(0.4))
+    baseMapNum = 32
+    weight_decay = 1e-4
+    model = tf.keras.models.Sequential()
 
-  #nm2.add(SpaceDepthSepConv2(input_dim = [4,4,4*baseMapNum], out_channels=8*baseMapNum))
-  #nm2.add(BatchNormalization())
-  #nm2.add(SpaceDepthSepConv2(input_dim = [4,4,8*baseMapNum], out_channels=8*baseMapNum))
-  #nm2.add(BatchNormalization())
-  #nm2.add(tf.keras.layers.MaxPooling2D((2, 2)))
-  #nm2.add(tf.keras.layers.Dropout(0.5))
-  nm2.add(tf.keras.layers.Flatten())
-  nm2.add(tf.keras.layers.Dense(10, activation='softmax'))
-  nm2.compile(optimizer=tf.keras.optimizers.Adam(), loss="categorical_crossentropy", metrics=["accuracy"], run_eagerly=True)
-  return nm2
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,3],
+        out_channels=baseMapNum, norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[32,32,baseMapNum],
+        out_channels=baseMapNum, norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Dropout(0.2))
+    
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,baseMapNum],
+        out_channels=2*baseMapNum, norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[16,16,2*baseMapNum],
+        out_channels=2*baseMapNum, norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Dropout(0.3))
+
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,2*baseMapNum],
+        out_channels=4*baseMapNum, norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(SpaceDepthSepConv2(input_dim=[8,8,4*baseMapNum],
+        out_channels=4*baseMapNum, norm_flag=True))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Dropout(0.4))
+
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(10, activation='softmax'))
+
+    return model
 
 def simplenet():
 
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Conv2D(baseMapNum, (3,3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(weight_decay), activation='relu'))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(baseMapNum, (3,3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(weight_decay), activation='relu'))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
-  model.add(tf.keras.layers.Dropout(0.2))
+    model = tf.keras.models.Sequential()
 
-  model.add(tf.keras.layers.Conv2D(2*baseMapNum, (3,3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(weight_decay), activation='relu'))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(2*baseMapNum, (3,3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(weight_decay), activation='relu'))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
-  model.add(tf.keras.layers.Dropout(0.3))
+    model.add(tf.keras.layers.Conv2D(baseMapNum, (3,3), padding='same',
+        kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+        activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(baseMapNum, (3,3), padding='same',
+        kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+        activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
+    model.add(tf.keras.layers.Dropout(0.2))
 
-  model.add(tf.keras.layers.Conv2D(4*baseMapNum, (3,3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(weight_decay), activation='relu'))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.Conv2D(4*baseMapNum, (3,3), padding='same', kernel_regularizer=tf.keras.regularizers.l2(weight_decay), activation='relu'))
-  model.add(tf.keras.layers.BatchNormalization())
-  model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
-  model.add(tf.keras.layers.Dropout(0.4))
+    model.add(tf.keras.layers.Conv2D(2*baseMapNum, (3,3), padding='same',
+        kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+        activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(2*baseMapNum, (3,3), padding='same',
+        kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+        activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
+    model.add(tf.keras.layers.Dropout(0.3))
 
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(10, activation='softmax'))
+    model.add(tf.keras.layers.Conv2D(4*baseMapNum, (3,3), padding='same',
+        kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+        activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(4*baseMapNum, (3,3), padding='same',
+        kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+        activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
+    model.add(tf.keras.layers.Dropout(0.4))
 
-  return model
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(10, activation='softmax'))
+
+    return model
 
 
 def allconvnet():
-  kern = 3
 
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Dropout(0.2))
-  model.add(tf.keras.layers.Conv2D(96, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(96, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(96, kern, padding = 'same', activation='relu', strides=2, kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', strides=2, kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(192, 1, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(10, 1, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.GlobalAveragePooling2D())
-  model.add(tf.keras.layers.Dense(10, activation='softmax', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
+    kern = 3
+    model = tf.keras.models.Sequential()
 
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model.add(tf.keras.layers.Dropout(0.2))
+    model.add(tf.keras.layers.Conv2D(96, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(96, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(96, kern, padding='same',
+        activation='relu', strides=2,
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
 
-  model.compile(optimizer='adam', loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return model
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', strides=2,
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(192, 1, padding='same', activation='relu',
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(10, 1, padding='same', activation='relu',
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+
+    model.add(tf.keras.layers.GlobalAveragePooling2D())
+    model.add(tf.keras.layers.Dense(10, activation='softmax',
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+
+    return model
 
 def allconvnet_BN():
-  model = tf.keras.models.Sequential()
-  model.add(tf.keras.layers.Dropout(0.2))
-  model.add(tf.keras.layers.Conv2D(96, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(96, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(96, kern, padding = 'same', activation='relu', strides=2, kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(BatchNormalization())
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', strides=2, kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(BatchNormalization())
-  model.add(tf.keras.layers.Dropout(0.5))
-  model.add(tf.keras.layers.Conv2D(192, kern, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(192, 1, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(tf.keras.layers.Conv2D(10, 1, padding = 'same', activation='relu', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
-  model.add(BatchNormalization())
-  model.add(tf.keras.layers.GlobalAveragePooling2D())
-  model.add(tf.keras.layers.Dense(10, activation='softmax', kernel_regularizer = tf.keras.regularizers.l2(1e-3)))
 
-  opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=False, name='SGD')
+    model = tf.keras.models.Sequential()
 
-  model.compile(optimizer='adam', loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-  return model
+    model.add(tf.keras.layers.Dropout(0.2))
+    model.add(tf.keras.layers.Conv2D(96, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(96, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(96, kern, padding='same',
+        activation='relu', strides=2,
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(BatchNormalization())
+
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same',
+        activation='relu', strides=2,
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(BatchNormalization())
+
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Conv2D(192, kern, padding='same', 
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(192, 1, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(tf.keras.layers.Conv2D(10, 1, padding='same',
+        activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+    model.add(BatchNormalization())
+
+    model.add(tf.keras.layers.GlobalAveragePooling2D())
+    model.add(tf.keras.layers.Dense(10, activation='softmax',
+        kernel_regularizer=tf.keras.regularizers.l2(1e-3)))
+
+    return model
 
  
-# Helper function to build the resnet model
+# Helper function to build the resnet model.
 def build_residual_blocks(inp, filters, reps, subsample=False):
-
-  class GrowingList(list):
-    def __setitem__(self, index, value):
-        if index >= len(self):
-            self.extend([None]*(index + 1 - len(self)))
-        list.__setitem__(self, index, value)
-
-  stride = 2 if subsample else 1
-
-  # Initialize an empty list of the requisite layers here
-  bn1 = GrowingList()
-  act1 = GrowingList()
-  c1 = GrowingList()
-
-  bn2 = GrowingList()                               
-  act2 = GrowingList()
-  c2 = GrowingList()
-
-  add = GrowingList()
-  
-  bn1[0] = tf.keras.layers.BatchNormalization()(inp)
-  act1[0] = tf.keras.layers.ReLU()(bn1[0])
-  # If subsampling at beginning, we need a stride of 2 only for 1st conv layer
-  c1[0] = tf.keras.layers.Conv2D(filters, 3, padding = 'same', strides=stride)(
-    act1[0])
-  
-  bn2[0] = tf.keras.layers.BatchNormalization()(c1[0])
-  act2[0] = tf.keras.layers.ReLU()(bn2[0])
-  c2[0] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act2[0])
-  
-  # In case of subsampling, additional processing needed to make the dimensions 
-  # of the two summands of the adder match up. We use the approach of maxpooling
-  # for the spatial dimensions and zero padding for the filter dimension.
-  if subsample:
-    in_pooled = tf.keras.layers.MaxPooling2D()(inp)
-    in_padded = tf.pad(in_pooled, paddings=[
-                                        [0, 0],
-                                        [0, 0],
-                                        [0, 0],
-                                        [0, filters//2]
-    ])
-    add[0] = tf.keras.layers.Add()([in_padded, c2[0]])
-  else:
-    add[0] = tf.keras.layers.Add()([inp, c2[0]])
-
-  for i in range(1, reps):
-    bn1[i] = tf.keras.layers.BatchNormalization()(add[i-1])
-    act1[i] = tf.keras.layers.ReLU()(bn1[i])
-    c1[i] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act1[i])
-
-    bn2[i] = tf.keras.layers.BatchNormalization()(c1[i])
-    act2[i] = tf.keras.layers.ReLU()(bn2[i])
-    c2[i] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act2[i])
     
-    add[i] = tf.keras.layers.Add()([add[i-1], c2[i]])
+    # We need a list class which can be grown dynamically.
+    class GrowingList(list):
+        def __setitem__(self, index, value):
+                if index >= len(self):
+                        self.extend([None]*(index + 1 - len(self)))
+                list.__setitem__(self, index, value)
 
-  return add[reps-1]
-  
-# 32 layer Resnet model
+    stride = 2 if subsample else 1
+
+    # Initialize an empty list of the requisite layers here.
+
+    # First group of BatchNormalization, activation and convolution layers.
+    bn1 = GrowingList()
+    act1 = GrowingList()
+    c1 = GrowingList()
+
+    # Second group of BatchNormalization, activation and convolution layers.
+    bn2 = GrowingList()                                                             
+    act2 = GrowingList()
+    c2 = GrowingList()
+
+    # Adder layer.
+    add = GrowingList()
+    
+    # Initialize the first set of layers.
+    bn1[0] = tf.keras.layers.BatchNormalization()(inp)
+    act1[0] = tf.keras.layers.ReLU()(bn1[0])
+
+    # If subsampling at beginning, need a stride of 2 only for 1st conv layer.
+    c1[0] = tf.keras.layers.Conv2D(filters, 3, padding='same', 
+        strides=stride)(act1[0])
+    
+    bn2[0] = tf.keras.layers.BatchNormalization()(c1[0])
+    act2[0] = tf.keras.layers.ReLU()(bn2[0])
+    c2[0] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act2[0])
+    
+    # In case of subsampling, additional processing needed to make the 
+    # dimensions of the two summands of the adder match up. We use maxpooling
+    # for the spatial dimensions and zero padding for the filter dimension.
+    if subsample:
+        in_pooled = tf.keras.layers.MaxPooling2D()(inp)
+        in_padded = tf.pad(in_pooled, paddings=[
+                                                [0, 0],
+                                                [0, 0],
+                                                [0, 0],
+                                                [0, filters//2]
+                                                ])
+        add[0] = tf.keras.layers.Add()([in_padded, c2[0]])
+    else:
+        add[0] = tf.keras.layers.Add()([inp, c2[0]])
+
+    # For the layer layers in the residual block, follow same hierarchy.
+    for i in range(1, reps):
+        bn1[i] = tf.keras.layers.BatchNormalization()(add[i-1])
+        act1[i] = tf.keras.layers.ReLU()(bn1[i])
+        c1[i] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act1[i])
+
+        bn2[i] = tf.keras.layers.BatchNormalization()(c1[i])
+        act2[i] = tf.keras.layers.ReLU()(bn2[i])
+        c2[i] = tf.keras.layers.Conv2D(filters, 3, padding='same')(act2[i])
+        
+        add[i] = tf.keras.layers.Add()([add[i-1], c2[i]])
+
+    return add[reps-1]
+    
+# 32 layer Resnet model for 10 class classification.
 def Resnet32():
-  inp = tf.keras.Input(shape = [32,32,3])
-  in_conv = tf.keras.layers.Conv2D(64, 3, padding='same')(inp)
-  res_64 = build_residual_blocks(in_conv, 64, 3)
-  res_128 = build_residual_blocks(res_64, 128, 4, subsample=True)
-  res_256 = build_residual_blocks(res_128, 256, 6, subsample=True)
-  res_512 = build_residual_blocks(res_256, 512, 4, subsample=True)
-  avg = tf.keras.layers.GlobalAveragePooling2D()(res_512)
-  out = tf.keras.layers.Dense(10, activation='softmax')(avg)
-  model = tf.keras.models.Model(inputs=inp, outputs=out)
 
-  return model
+    inp = tf.keras.Input(shape=[32,32,3])
+    in_conv = tf.keras.layers.Conv2D(64, 3, padding='same')(inp)
+    res_64 = build_residual_blocks(in_conv, 64, 3)
+    res_128 = build_residual_blocks(res_64, 128, 4, subsample=True)
+    res_256 = build_residual_blocks(res_128, 256, 6, subsample=True)
+    res_512 = build_residual_blocks(res_256, 512, 4, subsample=True)
+    avg = tf.keras.layers.GlobalAveragePooling2D()(res_512)
+    out = tf.keras.layers.Dense(10, activation='softmax')(avg)
+    model = tf.keras.models.Model(inputs=inp, outputs=out)
+
+    return model
+
+# ResNet32 for 100 class classification.
+def Resnet32_c100():
+
+    inp = tf.keras.Input(shape=[32,32,3])
+    in_conv = tf.keras.layers.Conv2D(64, 3, padding='same')(inp)
+    res_64 = build_residual_blocks(in_conv, 64, 3)
+    res_128 = build_residual_blocks(res_64, 128, 4, subsample=True)
+    res_256 = build_residual_blocks(res_128, 256, 6, subsample=True)
+    res_512 = build_residual_blocks(res_256, 512, 4, subsample=True)
+    avg = tf.keras.layers.GlobalAveragePooling2D()(res_512)
+    out = tf.keras.layers.Dense(100, activation='softmax')(avg)
+    model = tf.keras.models.Model(inputs=inp, outputs=out)
+
+    return model
