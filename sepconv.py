@@ -1,233 +1,399 @@
 import tensorflow as tf
 import numpy as np
 
-# Functions taken straight from the google paper code
-def prep_svd(conv, inp_shape):
-  conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
-  conv_shape = conv.shape
-  padding = tf.constant([[0, 0], [0, 0],
-                         [0, inp_shape[0] - conv_shape[0]],
-                         [0, inp_shape[1] - conv_shape[1]]])
-  return tf.signal.fft2d(tf.pad(conv_tr, padding))
 
 def singular_values(conv, inp_shape):
-  transform_coeff = prep_svd(conv, inp_shape)
-  singular_values = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]),
-                           compute_uv=False)
-  return singular_values
+    '''
+    Evaluate the singular values of the convolutional transformation.
+
+        Parameters:
+            conv (np.array): input convolutional kernel
+            inp_shape(tuple): input shape for the convolutional transform
+        Returns:
+            singular_values(tf.Tensor): array of singular values
+    '''
+    transform_coeff = prep_svd(conv, inp_shape)
+    singular_values = tf.linalg.svd(tf.transpose(transform_coeff,
+        perm = [2, 3, 0, 1]), compute_uv=False)
+    return singular_values
 
 def full_svd(conv, inp_shape):
-  conv_shape = conv.shape
-  transform_coeff = prep_svd(conv, inp_shape)
-  D,U,V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
-  return D, U, V, conv_shape
+    '''
+    Evaluate the full SVD of the convolutional transformation.
+
+        Parameters:
+            conv (np.array): input convolutional kernel
+            inp_shape(tuple): input shape for the convolutional transform
+        Returns:
+            D(tf.Tensor): Diagonal matrix of singular values
+            U(tf.Tensor): Unitary matrix of orthonormal right singular vectors
+            V(tf.Tensor): Unitary matrix of orthonormal left singular vectors
+    '''
+    conv_shape = conv.shape
+    transform_coeff = prep_svd(conv, inp_shape)
+    D,U,V = tf.linalg.svd(tf.transpose(transform_coeff, perm = [2, 3, 0, 1]))
+    return D, U, V, conv_shape
+
+def prep_svd(conv, inp_shape):
+    '''
+    Internal function performing common functionality required for both
+    full SVD computation and evaluating singular values.    
+    '''
+    conv_tr = tf.cast(tf.transpose(conv, perm=[2, 3, 0, 1]), tf.complex64)
+    conv_shape = conv.shape
+    padding = tf.constant([[0, 0], [0, 0],
+                        [0, inp_shape[0] - conv_shape[0]],
+                        [0, inp_shape[1] - conv_shape[1]]])
+    return tf.signal.fft2d(tf.pad(conv_tr, padding))
 
 def Clip_OperatorNorm(D, U, V, conv_shape, clip_to):
+    '''
+    Project the transformation represented by given SVD onto the space
+    of transformations having singular values bounded by clip_to.
 
-  D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
-  clipped_coeff = tf.linalg.matmul(U, tf.linalg.matmul(tf.linalg.diag(D_clipped),
-                                         V, adjoint_b=True))
-  clipped_conv_padded = tf.math.real(tf.signal.ifft2d(
-      tf.transpose(clipped_coeff, perm=[2, 3, 0, 1])))
-  return tf.slice(tf.transpose(clipped_conv_padded, perm=[2, 3, 0, 1]),
-                  [0] * len(conv_shape), conv_shape)
+        Parameters:
+            D(tf.Tensor): Diagonal matrix of singular values
+            U(tf.Tensor): Unitary matrix of orthonormal right singular vectors
+            V(tf.Tensor): Unitary matrix of orthonormal left singular vectors
+            conv_shape(np.array): shape of the convolutional kernel
+            clip_to(float): maximum value for singular values clipping
+        Returns:
+            kern(tf.Tensor): The convolutional kernel of the projected
+                                transformation      
+    '''
+    D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
+    clipped_coeff = tf.linalg.matmul(U,
+        tf.linalg.matmul(tf.linalg.diag(D_clipped), V, adjoint_b=True))
+    clipped_conv_padded = tf.math.real(
+        tf.signal.ifft2d(tf.transpose(clipped_coeff, perm=[2, 3, 0, 1])))
+    return tf.slice(tf.transpose(clipped_conv_padded, perm=[2, 3, 0, 1]),
+        [0] * len(conv_shape), conv_shape)
 
-def Normalize_kern(kern, L, div):
-  return tf.math.divide(kern, L/div)
+def normalize_kern(kern, L, div):
+    '''Normalize the input kernel by dividing by L/div'''
+    return tf.math.divide(kern, L/div)
 
 def l2_bound(kern):
-  kern_t = tf.cast(tf.transpose(kern, perm = [2,3,0,1]), dtype=tf.complex64)
-  kern_hat = tf.math.square(tf.math.abs(tf.signal.fft2d(kern_t)))
-  return tf.reduce_max(tf.math.sqrt(tf.math.reduce_sum(kern_hat, axis=[0,1])), axis=None)
+    '''
+    Evaluate the a bound on the l2-l2 Lipschitz constant of the input
+    convolutional mapping
+
+    Parameters:
+        kern(np.array): Kernel of the input convolutional mapping
+    Returns:
+        bound(double): The evaluated bound    
+    '''
+    kern_t = tf.cast(tf.transpose(kern, perm = [2,3,0,1]), dtype=tf.complex64)
+    kern_hat = tf.math.square(tf.math.abs(tf.signal.fft2d(kern_t)))
+    return tf.reduce_max(
+        tf.math.sqrt(tf.math.reduce_sum(kern_hat, axis=[0,1])), axis=None)
 
 def linf_bound(kern):
-  return tf.math.reduce_max(tf.math.reduce_sum(tf.math.abs(kern), [0,1,2]))
+    '''
+    Evaluate the a bound on the linf-linf Lipschitz constant of the input
+    convolutional mapping.
+
+    Parameters:
+        kern(np.array): Kernel of the input convolutional mapping
+    Returns:
+        bound(double): The evaluated bound    
+    '''
+    return tf.math.reduce_max(tf.math.reduce_sum(tf.math.abs(kern), [0,1,2]))
 
 
 class SpaceDepthSepConv2(tf.keras.layers.Layer):
-    def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
+    '''
+    Class representing space-depth-separabe convolutions. Derived from
+    the TensorFlow Layer class. Behaviour is analogous to Conv2D
+    available in the keras API within Tensorflow. The convolutional
+    kernel is not fully learnable but is generated by the following
+    learnable parameters;
+
+        Attributes
+        ----------
+        u(tf.Tensor): First space vector responsible for the generation of rank-1
+            spatial 2D filter, one for each output channel, learnable.     
+        v(tf.Tensor): Second space vector responsible for the generation of rank-1
+            spatial 2D filter, one for each output channel, learnable.                
+        w(tf.Tensor): Depth multiplier vectors responsible for generating the
+            full kernel my scaling the 2D spatial filter, one for each output
+            channel, learnable.
+        b(tf.Tensor): Bias vector, one for each output channel, learnable.
+        out_channels(int): Number of output channels, not learnable.
+        in_channels(int): Number of input channels, not learnable.
+        kern_size(int): Spatial dimension of the convolutional kernel (eg.
+                        3 denotes 3 x 3 window convolutions.), not learnable.
+        in_shape(tuple): Input shape the layer can expect, not learnable.
+        norm_flag(tf.constant): To control if regularization functions have to
+                                be provided to this layer, not learnable.
+        stride(tf.constant): Stride of convolutions, not learnable.
+
+        Methods
+        -------
+            construct_kern(): constructs the full convolutional kernel 
+                                using u, v and w.
+            call(inputs): Forward call through the layer.
+            div_kernel(L): Normalize the kernel for this conv layer.    
+             
+        
+    '''
+    def __init__(self, kern_size = 3, norm_flag=True, stride=1, **kwarg):
+        '''
+            ctor which calls super for the base class and initializes attributes
+        '''
         if('name' in kwarg):
           super(SpaceDepthSepConv2, self).__init__(name = kwarg['name'])
         else:
           super(SpaceDepthSepConv2, self).__init__()
+
         self.u = self.add_weight(
-            shape=([kwarg['out_channels'], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        )
+            shape=([kwarg['out_channels'], kern_size]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True)
         self.v = self.add_weight(
-            shape=([kwarg['out_channels'], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        )
+            shape=([kwarg['out_channels'], kern_size]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True)
         self.w = self.add_weight(
-            shape=([kwarg['out_channels'], kwarg['input_dim'][-1]]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        ) 
-        self.out_channels = tf.Variable(
-            initial_value=tf.constant(kwarg['out_channels']), trainable=False
-        )
-        self.in_channels = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False
-        )
-        self.kern_size = tf.Variable(
-            initial_value=tf.constant(kern_size), trainable=False
-        )
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1]]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True) 
         self.b = self.add_weight(
-            shape=([kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
-        )
+            shape=([kwarg['out_channels']]),
+            initializer=tf.keras.initializers.zeros, trainable=True)
+
+        self.out_channels = tf.Variable(
+            initial_value=tf.constant(kwarg['out_channels']), trainable=False)
+        self.in_channels = tf.Variable(
+            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False)
+        self.kern_size = tf.Variable(
+            initial_value=tf.constant(kern_size), trainable=False)
         self.in_shape = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim'][:-1]), trainable=False
-        )
+            initial_value=tf.constant(kwarg['input_dim'][:-1]), trainable=False)
         self.norm_flag = tf.Variable(
-            initial_value=tf.constant(norm_flag), trainable=False
-        )
+            initial_value=tf.constant(norm_flag), trainable=False)
         self.stride = tf.Variable(
-            initial_value=tf.constant(stride), trainable=False
-        )
+            initial_value=tf.constant(stride), trainable=False)
 
     def construct_kern(self):
-        #Build kernel using u, v, w here
-        #kern[i,j,k,l] = u[l,j]*w[l,k]*v[l,i]
+        '''
+            Build kernel using: kern[i,j,k,l] = u[l,j]*w[l,k]*v[l,i]
+        '''
         return tf.einsum('lj,lk, li->ijkl', self.u, self.w, self.v)
 
     def call(self, inputs):
-        kern = self.construct_kern()
-        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, strides=self.stride, padding='SAME') + self.b)
+        '''
+            Implement the convolution forward pass through this layer.
+            
+            Parameters
+            ----------
+                inputs(np.array): Batched inputs to the layer.
+        '''
+        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern,
+            strides=self.stride, padding='SAME') + self.b)
 
-    #Compute the bound as mentioned in the Design Doc
-    def linf_bound(self):
-        kern = self.construct_kern()
-        return tf.math.reduce_max(tf.math.reduce_sum(tf.math.abs(kern), [0,1,2]))
-
-
-    #Normalize in the L_inf - L_inf lipschitz sense
-    def normalize_linf(self):
-        self.div_kernel(self.linf_bound())
-
-    def normalize_google(self, norm_bound):
-      kern = self.construct_kern()
-      D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
-      L = tf.math.reduce_max(D)
-      self.div_kernel(L/norm_bound)
-      
     def div_kernel(self, L):
+        '''
+            Normalize the convolutional kernel by dividing relevant attributes.
+
+            Parameters
+            ----------
+                L(double): Divisor for kernel normalization.
+        '''
         crL = tf.math.pow(L,1.0/3.0)
         self.u = tf.math.divide(self.u, crL)
         self.v = tf.math.divide(self.v, crL) 
         self.w = tf.math.divide(self.w, crL)
 
-    def normalize_l2(self):
-        self.div_kernel(l2_bound(self.construct_kern()))
-
-    #Google paper inspired operator norm regularization
     def normalize_l2_op(self, clip_to):
+        '''
+            Implement an experimental operator norm regularization.
+
+            Process involves clipping the singular values of an 
+            intermediate matrix while performing normalization on
+            the DFT of u and v.
+
+            Parameters
+            ----------
+                clip_to(double): Max singular value of the said
+                                    intermediate matrix.
+        '''
         u_hat = tf.signal.fft(tf.cast(self.u, dtype = tf.complex64))
         u_hat_norm, _ = tf.linalg.normalize(u_hat, ord=2, axis=0)
         v_hat = tf.signal.fft(tf.cast(self.v, dtype = tf.complex64))
         v_hat_norm, _ = tf.linalg.normalize(v_hat, ord=2, axis=0)
         D, U, V = tf.linalg.svd(tf.cast(self.w, dtype = tf.complex64))
         D_clipped = tf.cast(tf.minimum(D, clip_to), tf.complex64)
-        self.w = tf.math.real(tf.matmul(U, tf.matmul(tf.linalg.diag(D_clipped), V, adjoint_b=True)))
+        self.w = tf.math.real(tf.matmul(U, 
+            tf.matmul(tf.linalg.diag(D_clipped), V, adjoint_b=True)))
         self.u = tf.math.real(tf.signal.ifft(u_hat_norm))
         self.v = tf.math.real(tf.signal.ifft(v_hat_norm))
         
     def l2_bound_exp(self):
+        '''
+            Evaluate an experimental boun on the l2-l2 Lipschitz const.
+        '''
         u_hat = tf.signal.fft(tf.cast(self.u, dtype = tf.complex64))
         v_hat = tf.signal.fft(tf.cast(self.v, dtype = tf.complex64))
         w_out = tf.reduce_sum(self.w, axis=[1])
-        temp = tf.einsum('li, lj, l-> lij', tf.math.square(tf.abs(u_hat)), tf.math.square(tf.math.abs(v_hat)), tf.math.square(w_out))
+        temp = tf.einsum('li, lj, l-> lij', tf.math.square(tf.abs(u_hat)), 
+            tf.math.square(tf.math.abs(v_hat)), tf.math.square(w_out))
         freq_mat = tf.reduce_sum(temp, axis=[0])
         return tf.reduce_max(tf.math.sqrt(freq_mat), axis=None)
 
-    def debug(self):
-        #if (tf.norm(self.u, ord=2, axis=1).numpy().any() > 1):
-        #   print("u out of norm bound")
-        #if (tf.norm(self.v, ord=2, axis=1).numpy().any() > 1):
-        #   print("v out of norm bound")
-        #if (tf.norm(self.w, ord=np.inf, axis=1).numpy().any() > 1):
-        #   print("w out of norm bound")
-        print("L_inf Bound is "+str(self.linf_bound()))
-        print("L_2 Bound is "+str(self.l2_bound_exp()))
-
 
 class SpaceSepConv2(tf.keras.layers.Layer):
-    def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
+    '''
+    Class representing space-separabe convolutions. Derived from
+    the TensorFlow Layer class. Behaviour is analogous to Conv2D
+    available in the keras API within Tensorflow. The convolutional
+    kernel is not fully learnable but is generated by the following
+    learnable parameters;
+
+        Attributes
+        ----------
+        u(tf.Tensor): First space vector responsible for the generation of
+            rank-1 spatial 2D filter, one for each input-output channel pair,
+            learnable.     
+        v(tf.Tensor): Second space vector responsible for the generation of
+            rank-1 spatial 2D filter, one for each input-output channel pair,
+            learnable.                
+        b(tf.Tensor): Bias vector, one for each output channel, learnable.
+        out_channels(int): Number of output channels, not learnable.
+        in_channels(int): Number of input channels, not learnable.
+        kern_size(int): Spatial dimension of the convolutional kernel (eg.
+                        3 denotes 3 x 3 window convolutions.), not learnable.
+        in_shape(tuple): Input shape the layer can expect, not learnable.
+        norm_flag(tf.constant): To control if regularization functions have to
+                                be provided to this layer, not learnable.
+        stride(tf.constant): Stride of convolutions, not learnable.
+
+        Methods
+        -------
+            construct_kern(): constructs the full convolutional kernel 
+                                using u and v.
+            call(inputs): Forward call through the layer.
+            div_kernel(L): Normalize the kernel for this conv layer.    
+        
+    '''
+    def __init__(self, kern_size = 3, norm_flag=True, stride=1, **kwarg):
+        '''
+            ctor which calls super for the base class and initializes attributes
+        '''
         if(len(kwarg)>2):
           super(SpaceSepConv2, self).__init__(name = kwarg['name'])
         else:
           super(SpaceSepConv2, self).__init__()
         self.u = self.add_weight(
-            shape=([kwarg['out_channels'], kwarg['input_dim'][-1], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        )
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1], kern_size]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True)
         self.v = self.add_weight(
-            shape=([kwarg['out_channels'], kwarg['input_dim'][-1], kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        )
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1], kern_size]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True)
         self.out_channels = tf.Variable(
-            initial_value=tf.constant(kwarg['out_channels']), trainable=False
-        )
+            initial_value=tf.constant(kwarg['out_channels']), trainable=False)
         self.in_channels = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False
-        )
+            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False)
         self.kern_size = tf.Variable(
-            initial_value=tf.constant(kern_size), trainable=False
-        )
+            initial_value=tf.constant(kern_size), trainable=False)
         self.b = self.add_weight(
-            shape=([kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
-        )
+            shape=([kwarg['out_channels']]),
+            initializer=tf.keras.initializers.zeros, trainable=True)
         self.norm_flag = tf.Variable(
-            initial_value=tf.constant(norm_flag), trainable=False
-        )
+            initial_value=tf.constant(norm_flag), trainable=False)
         self.stride = tf.Variable(
-            initial_value=tf.constant(stride), trainable=False
-        )
+            initial_value=tf.constant(stride), trainable=False)
         self.in_shape = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim'][:-1]), trainable=False
-        )
+            initial_value=tf.constant(kwarg['input_dim'][:-1]), trainable=False)
 
     def construct_kern(self):
-        #Build kernel using u, v here
-        #kern[i,j,k,l] = u[k,l,j]*w[k,l,i]*v[l,i]
+        '''
+            Build kernel using: kern[i,j,k,l] = u[l,j,k]*v[l,k,i]
+        '''
         return tf.einsum('lkj,lki->ijkl', self.u, self.v)
 
     def call(self, inputs):    
+        '''
+            Implement the convolution forward pass through this layer.
+            
+            Parameters
+            ----------
+                inputs(np.array): Batched inputs to the layer.
+        '''
         kern = self.construct_kern()
-        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, strides = self.stride, padding='SAME') + self.b)
+        return tf.keras.activations.relu(
+            tf.nn.conv2d(inputs, kern, strides = self.stride, padding='SAME')
+            + self.b)
 
     def div_kernel(self, L):
+        '''
+            Normalize the convolutional kernel by dividing relevant attributes.
+
+            Parameters
+            ----------
+                L(double): Divisor for kernel normalization.
+        '''
         srL = tf.math.pow(L,1.0/2.0)
         self.u = tf.math.divide(self.u, srL)
         self.v = tf.math.divide(self.v, srL) 
 
-    #Normalize in the L_2 - L_2 lipschitz sense
-    def normalize_l2(self):
-        self.div_kernel(l2_bound(self.construct_kern()))
-
-    def normalize_google(self, norm_bound):
-        kern = self.construct_kern()
-        D, U, V, _ =  SVD_Conv_Tensor(kern, self.in_shape.numpy())
-        L = tf.math.reduce_max(D)
-        self.div_kernel(L/norm_bound)
 
 class DepthSepConv2(tf.keras.layers.Layer):
-    def __init__(self, kern_size = 3, norm_flag=False, stride=1, **kwarg):
+    '''
+    Class representing depth-separable convolutions. Derived from
+    the TensorFlow Layer class. Behaviour is analogous to Conv2D
+    available in the keras API within Tensorflow. The convolutional
+    kernel is not fully learnable but is generated by the following
+    learnable parameters;
+
+        Attributes
+        ----------
+        k(tf.Tensor): Rank-1 spatial 2D filter, one for each output channel,
+                        learnable.     
+        u(tf.Tensor): Depth multiplier vectors responsible for generating the full
+            kernel my scaling the 2D spatial filter, one for each output
+            channel, learnable.
+        b(tf.Tensor): Bias vector, one for each output channel, learnable.
+        out_channels(int): Number of output channels, not learnable.
+        in_channels(int): Number of input channels, not learnable.
+        kern_size(int): Spatial dimension of the convolutional kernel (eg.
+                        3 denotes 3 x 3 window convolutions.), not learnable.
+        in_shape(tuple): Input shape the layer can expect, not learnable.
+        norm_flag(tf.constant): To control if regularization functions have to
+                                be provided to this layer, not learnable.
+        stride(tf.constant): Stride of convolutions, not learnable.
+
+        Methods
+        -------
+            construct_kern(): constructs the full convolutional kernel 
+                                using k and u.
+            call(inputs): Forward call through the layer.
+            div_kernel(L): Normalize the kernel for this conv layer.    
+        
+    '''
+
+    def __init__(self, kern_size = 3, norm_flag=True, stride=1, **kwarg):
+        '''
+            ctor which calls super for the base class and initializes attributes
+        '''
         if(len(kwarg)>2):
           super(DepthSepConv2, self).__init__(name = kwarg['name'])
         else:
           super(DepthSepConv2, self).__init__()
         self.k = self.add_weight(
-            shape=([kwarg['out_channels'], kern_size, kern_size]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        )
+            shape=([kwarg['out_channels'], kern_size, kern_size]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True)
         self.u = self.add_weight(
-            shape=([kwarg['out_channels'], kwarg['input_dim'][-1]]), initializer=tf.keras.initializers.glorot_normal, trainable=True
-        )
+            shape=([kwarg['out_channels'], kwarg['input_dim'][-1]]),
+            initializer=tf.keras.initializers.glorot_normal, trainable=True)
         self.out_channels = tf.Variable(
-            initial_value=tf.constant(kwarg['out_channels']), trainable=False
-        )
+            initial_value=tf.constant(kwarg['out_channels']),
+            trainable=False)
         self.in_channels = tf.Variable(
-            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False
-        )
+            initial_value=tf.constant(kwarg['input_dim'][-1]), trainable=False)
         self.kern_size = tf.Variable(
             initial_value=tf.constant(kern_size), trainable=False
         )
         self.b = self.add_weight(
-            shape=([kwarg['out_channels']]), initializer=tf.keras.initializers.zeros, trainable=True
-        )
+            shape=([kwarg['out_channels']]),
+            initializer=tf.keras.initializers.zeros, trainable=True)
         self.norm_flag = tf.Variable(
             initial_value=tf.constant(norm_flag), trainable=False
         )
@@ -237,34 +403,40 @@ class DepthSepConv2(tf.keras.layers.Layer):
         self.in_shape = (int(kwarg['input_dim'][1]), int(kwarg['input_dim'][2]))
 
     def construct_kern(self):
-        #Build kernel using u, v here
-        #kern[i,j,k,l] = u[k,l,j]*w[k,l,i]*v[l,i]
+        '''
+            Build kernel using: kern[i,j,k,l] = k[l,i,j]*u[l,k]
+        '''
         return tf.einsum('lij,lk->ijkl', self.k, self.u)
 
     def call(self, inputs):    
+        '''
+            Implement the convolution forward pass through this layer.
+            
+            Parameters
+            ----------
+                inputs(np.array): Batched inputs to the layer.
+        '''
         kern = self.construct_kern()
-        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, strides=self.stride, padding='SAME') + self.b)
+        return tf.keras.activations.relu(tf.nn.conv2d(inputs, kern, 
+            strides=self.stride, padding='SAME') + self.b)
 
     def div_kernel(self, L):
+        '''
+            Normalize the convolutional kernel by dividing relevant attributes.
+
+            Parameters
+            ----------
+                L(double): Divisor for kernel normalization.
+        '''
         srL = tf.math.pow(L,1.0/2.0)
         self.k = tf.math.divide(self.k, srL)
         self.u = tf.math.divide(self.u, srL) 
 
-    #Normalize in the L_2 - L_2 lipschitz sense
-    def normalize_l2(self):
-        self.div_kernel(l2_bound(self.construct_kern()))
-
-    def normalize_cust(self):
-        self.div_kernel(self.cust_bound())
-
-    def normalize_google(self):
-        kern = self.construct_kern()
-        D, U, V, _ =  full_svd(kern, self.in_shape)
-        self.div_kernel(tf.math.reduce_max(D))
-
     def cust_bound(self):
+        '''
+            Evaluate an experimental bound on the l2-l2 Lipschitz const.
+        '''
         D = tf.linalg.svd(self.u, compute_uv=False)
         return tf.math.reduce_max(tf.norm(self.k, ord=2, axis=0))\
           *tf.math.reduce_max(D)\
-          *tf.math.sqrt(tf.cast(self.out_channels, tf.float32))
-        
+          *tf.math.sqrt(tf.cast(self.out_channels, tf.float32)) 
